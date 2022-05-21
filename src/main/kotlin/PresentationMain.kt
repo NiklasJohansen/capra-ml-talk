@@ -4,24 +4,21 @@ import no.njoh.pulseengine.widgets.cli.CommandLine
 import no.njoh.pulseengine.widgets.editor.SceneEditor
 import no.njoh.pulseengine.widgets.profiler.Profiler
 
-fun main() = PulseEngine.run(GameTemplate::class)
+fun main() = PulseEngine.run(PresentationMain::class)
 
-class GameTemplate : PulseEngineGame()
+class PresentationMain : PulseEngineGame()
 {
     override fun onCreate()
     {
         engine.widget.add(CommandLine(), Profiler(), SceneEditor())
     }
 
-    override fun onUpdate()
-    {
-
-    }
+    override fun onUpdate() { }
 
     override fun onRender()
     {
         engine.gfx.mainSurface.drawText(
-            text = "Pulse Engine Game Template",
+            text = "Neural Network Presentation",
             x = engine.window.width / 2f,
             y = engine.window.height / 2f,
             fontSize = 72f,
@@ -29,8 +26,5 @@ class GameTemplate : PulseEngineGame()
         )
     }
 
-    override fun onDestroy()
-    {
-
-    }
+    override fun onDestroy() { }
 }

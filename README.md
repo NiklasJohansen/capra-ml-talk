@@ -1,5 +1,9 @@
-# Pulse Engine Game Template
+# Neural Network Presentation
 
-This repository provides a template for creating games with the [Pulse Engine](https://github.com/NiklasJohansen/PulseEngine).
+This repository contains an interactive presentation of the inner workings of a neural network.
 
-Some code examples are available and further instructions will be coming soon.
+### Build and run
+```
+gradlew build
+java -jar build/libs/neural-network-presentation-1.0.jar
+```
