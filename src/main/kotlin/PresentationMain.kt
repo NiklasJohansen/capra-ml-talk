@@ -10,21 +10,15 @@ class PresentationMain : PulseEngineGame()
 {
     override fun onCreate()
     {
+        engine.window.title = "Neural Network Presentation"
         engine.widget.add(CommandLine(), Profiler(), SceneEditor())
+
+        val isSceneFileInSaveDirectory = engine.data.exists("nnp-0.scn")
+        engine.scene.loadAndSetActive("nnp-0.scn", fromClassPath = !isSceneFileInSaveDirectory)
+        engine.scene.start()
     }
 
     override fun onUpdate() { }
-
-    override fun onRender()
-    {
-        engine.gfx.mainSurface.drawText(
-            text = "Neural Network Presentation",
-            x = engine.window.width / 2f,
-            y = engine.window.height / 2f,
-            fontSize = 72f,
-            xOrigin = 0.5f
-        )
-    }
-
+    override fun onRender() { }
     override fun onDestroy() { }
 }
