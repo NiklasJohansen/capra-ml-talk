@@ -48,8 +48,6 @@ class Connection : SceneEntity()
 
         if (fromNode != null && toNode != null)
             drawConnection(surface, fromNode, toNode)
-        else
-            super.onRender(engine, surface) // Default entity rendering when not connected to any nodes
     }
 
     private fun drawConnection(surface: Surface2D, fromNode: Node, toNode: Node)
