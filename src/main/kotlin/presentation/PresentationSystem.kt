@@ -37,7 +37,7 @@ class PresentationSystem : SceneSystem()
             highestSlideIndex = max(it.slideIndex, highestSlideIndex)
         }
 
-        // Update slide index with key input
+        // Update slide index on key input
         if (engine.input.wasClicked(Key.LEFT)) slideIndex--
         if (engine.input.wasClicked(Key.RIGHT) || engine.input.wasClicked(Key.SPACE)) slideIndex++
 
