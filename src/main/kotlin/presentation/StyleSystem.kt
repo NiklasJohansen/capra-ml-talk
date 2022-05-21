@@ -1,4 +1,4 @@
-package systems
+package presentation
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.njoh.pulseengine.core.PulseEngine

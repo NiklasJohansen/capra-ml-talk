@@ -1,4 +1,4 @@
-package entities.ui
+package presentation
 
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.graphics.Surface2D
