@@ -1,5 +1,6 @@
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.PulseEngineGame
+import no.njoh.pulseengine.core.input.CursorType
 import no.njoh.pulseengine.widgets.cli.CommandLine
 import no.njoh.pulseengine.widgets.editor.SceneEditor
 import no.njoh.pulseengine.widgets.profiler.Profiler
@@ -18,7 +19,12 @@ class PresentationMain : PulseEngineGame()
         engine.scene.start()
     }
 
-    override fun onUpdate() { }
+    override fun onUpdate()
+    {
+        // Set default cursor once every frame
+        engine.input.setCursor(CursorType.ARROW)
+    }
+
     override fun onRender() { }
     override fun onDestroy() { }
 }

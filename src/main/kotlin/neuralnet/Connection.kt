@@ -31,14 +31,16 @@ class Connection : SceneEntity()
     var showText = true
     var editable = true
     var textSize = 15f
-    var xTextOffset = 0f
-    var yTextOffset = 0f
     var lineThickness = 4f
 
     override fun onUpdate(engine: PulseEngine)
     {
         if (editable)
             weight += editEntityValue(engine, id)
+
+        // Removes disconnected connections
+        if (engine.scene.getEntity(fromNodeId) == null || engine.scene.getEntity(toNodeId) == null)
+            set(DEAD)
     }
 
     override fun onRender(engine: PulseEngine, surface: Surface2D)
@@ -63,8 +65,6 @@ class Connection : SceneEntity()
         // Draw weight value text if enabled
         if (showText)
         {
-            x = (fromNode.x + toNode.x) * 0.5f + xTextOffset
-            y = (fromNode.y + toNode.y) * 0.5f + yTextOffset
             surface.setDrawColor(textColor)
             surface.drawText(
                 text = weight.format(),
