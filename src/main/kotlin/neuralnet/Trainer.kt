@@ -201,9 +201,9 @@ class Trainer : SceneEntity(), Graphable<Int, Float>
         {
             val nextLayerSize = network.getOrNull(i + 1)?.size ?: 0
             val variance = 2.0 / (layer.size + nextLayerSize)
-            val standardDeviation = sqrt(variance)
+            val standardDeviation = sqrt(variance).toFloat()
             for (node in layer)
-                node.forEachOutgoingConnection { it.weight = (nextRandomGaussian() * standardDeviation).toFloat() }
+                node.forEachOutgoingConnection { it.weight = nextRandomGaussian() * standardDeviation }
         }
     }
 

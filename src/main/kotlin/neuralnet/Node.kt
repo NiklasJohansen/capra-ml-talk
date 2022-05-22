@@ -22,9 +22,6 @@ class Node : SceneEntity()
     /** The activation function to apply when calculating the outputValue from the connected input nodes. */
     var activationFunction = ActivationFunction.SIGMOID
 
-    /** Determines if the outputValue can be edited by mouse input. */
-    var editable = true
-
     /** The ID of the [Dataset] to source the output value from. Set to -1 if no dataset should be used. */
     var datasetId = -1L
 
@@ -34,12 +31,13 @@ class Node : SceneEntity()
     /** If the [Node] is an output node this index defines which column in the [Dataset] is the actual target value. */
     var targetValueIndex = -1
 
-    // Styling parameters
+    // Styling and interaction parameters
     var fillColor = Color(47, 68, 94)
     var borderColor = Color(7, 7, 7)
     var textColor = Color(255, 255, 255)
     var textSize = 28f
     var borderSize = 3.5f
+    var editable = true
 
     // Store weighted sum (value before activation function) for use under training
     @JsonIgnore var weightedSum = 0f
