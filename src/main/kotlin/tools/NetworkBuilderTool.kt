@@ -11,6 +11,7 @@ import no.njoh.pulseengine.core.scene.SceneEntity
 import no.njoh.pulseengine.core.scene.SceneEntity.Companion.SELECTED
 import no.njoh.pulseengine.core.scene.SceneState.STOPPED
 import no.njoh.pulseengine.core.scene.SceneSystem
+import presentation.TextLabel
 import java.util.Random
 import kotlin.math.abs
 
@@ -34,6 +35,7 @@ class NetworkBuilderTool : SceneSystem()
         handleBulkConnectionsOperations(engine)
         handleNodeSnapping<Node>(engine)
         handleNodeSnapping<Connection>(engine)
+        handleNodeSnapping<TextLabel>(engine)
     }
 
     private fun handleConnectionCreation(engine: PulseEngine)

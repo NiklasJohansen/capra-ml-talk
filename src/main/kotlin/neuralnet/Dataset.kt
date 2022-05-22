@@ -18,15 +18,21 @@ import kotlin.math.max
  */
 class Dataset : SceneEntity()
 {
-    /** String representation of the dataset used to populate the dataset. Expects a comma separated sample per line. */
+    /** String representation of the dataset used to populate the dataset. */
     var values = ""
         set (value) { field = value; updateTable(value) }
 
+    /** The character used to separate each row in the dataset. */
+    var rowSeparator = '\n'
+
+    /** The character used to separate each column of a row in the dataset. */
+    var columnSeparator = ','
+
+    /** Set true if the first row of the dataset contains column names. */
+    var hasHeaders = true
+
     /** Holds the index of the currently selected table row. */
     var selectedRowIndex = -1
-
-    /** Set true if the first row of the dataset contains column names*/
-    var hasHeaders = true
 
     // Styling parameters of table
     var textSize = 24f
@@ -38,6 +44,9 @@ class Dataset : SceneEntity()
     /** Local fast lookup table of the dataset. */
     @JsonIgnore private var table = Array2D<String?>(1, 1)
 
+    /**
+     * Handle mouse input and manual selection of rows.
+     */
     override fun onUpdate(engine: PulseEngine)
     {
         val xm = engine.input.xWorldMouse
@@ -58,6 +67,9 @@ class Dataset : SceneEntity()
         }
     }
 
+    /**
+     * Render the dataset as a table.
+     */
     override fun onRender(engine: PulseEngine, surface: Surface2D)
     {
         val rowHeight = height / table.height
@@ -112,17 +124,14 @@ class Dataset : SceneEntity()
      */
     private fun updateTable(values: String)
     {
-        val rows = values.split("\n").map { it.split(",") }
+        val rows = values.split(rowSeparator).map { it.split(columnSeparator) }
         val nColumns = rows.maxOf { row -> row.size }
         if (nColumns != table.width || rows.size != table.height)
             table = Array2D(nColumns, rows.size)
+
         for ((yIndex, row) in rows.withIndex())
-        {
             for ((xIndex, columnValue) in row.withIndex())
-            {
                 table[xIndex, yIndex] = columnValue
-            }
-        }
     }
 
     /**
@@ -135,9 +144,15 @@ class Dataset : SceneEntity()
         return table[colIndex, rowIndex]?.toFloatOrNull() ?: -1f
     }
 
-    /**
-     * Returns the number of rows with actual data.
-     */
-    fun getRowCount(): Int =
-        table.height - if (hasHeaders) 1 else 0
+    /** Returns the number of rows with actual data (ignores the header row). */
+    fun getRowCount(): Int = table.height - if (hasHeaders) 1 else 0
+
+    /** Returns true if the current selected row index is the last row in the dataset. */
+    fun isLastRowSelected(): Boolean = (selectedRowIndex == (getRowCount() - 1))
+
+    /** Increases the selected row index. Wraps over to zero on last index. */
+    fun setNextRow()
+    {
+        selectedRowIndex = (selectedRowIndex + 1) % getRowCount()
+    }
 }

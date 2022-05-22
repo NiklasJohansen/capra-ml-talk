@@ -1,5 +1,6 @@
 package neuralnet
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.graphics.Surface2D
@@ -41,7 +42,7 @@ class Node : SceneEntity()
     var borderSize = 3.5f
 
     // Store weighted sum (value before activation function) for use under training
-    protected var weightedSum = 0f
+    @JsonIgnore var weightedSum = 0f
 
     override fun onUpdate(engine: PulseEngine)
     {

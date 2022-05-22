@@ -48,3 +48,10 @@ fun editEntityValue(engine: PulseEngine, entityId: Long): Float
 
 /** Stores the ID of the selected entity */
 var selectedEntity: Long? = null
+
+/**
+ * Returns the next pseudorandom, Gaussian ("normally") distributed float value
+ * with mean 0.0 and standard deviation 1.0
+ */
+fun nextRandomGaussian() = random.nextGaussian().toFloat()
+private val random = Random() // java.util.Random provides .nextGaussian() function
