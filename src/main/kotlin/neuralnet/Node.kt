@@ -6,10 +6,12 @@ import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.graphics.Surface2D
 import no.njoh.pulseengine.core.scene.SceneEntity
 import no.njoh.pulseengine.core.shared.primitives.Color
+import presentation.StyleSystem
 import kotlin.math.min
 import tools.editEntityValue
 import tools.format
-import tools.times
+import tools.lerp
+import kotlin.math.abs
 
 /**
  * This entity represent a neuron / brain-cell.
@@ -32,21 +34,18 @@ class Node : SceneEntity()
     var targetValueIndex = -1
 
     // Styling and interaction parameters
-    var fillColor = Color(47, 68, 94)
-    var borderColor = Color(7, 7, 7)
     var textColor = Color(255, 255, 255)
     var textSize = 28f
-    var borderSize = 3.5f
+    var showText = true
     var editable = true
+    var showActivationFunction = true
+    var borderSize = 3.5f
 
-    // Store weighted sum (value before activation function) for use under training
+    // Store weighted sum (sum before activation function) for use under training
     @JsonIgnore var weightedSum = 0f
 
     override fun onUpdate(engine: PulseEngine)
     {
-        if (editable)
-            outputValue += editEntityValue(engine, id)
-
         updateNodeValue(engine)
     }
 
@@ -85,17 +84,31 @@ class Node : SceneEntity()
             weightedSum = sum
             outputValue = activationFunction.compute(sum)
         }
+        else if (editable) // Manually edit value
+        {
+            outputValue += editEntityValue(engine, id)
+        }
     }
 
     override fun onRender(engine: PulseEngine, surface: Surface2D)
     {
+        // Get colors from StyleSystem
+        val style = engine.scene.getSystemOfType<StyleSystem>()
+        val lowColor = style?.nodeLowColor ?: lowFillColor
+        val highColor = style?.nodeHighColor ?: highFillColor
+        val borderColor = style?.nodeBorderColor ?: borderColor
+        val a = abs(outputValue).coerceAtMost(1f)
+
         // Border
         surface.setDrawColor(borderColor)
         surface.drawTexture(Texture.BLANK, x, y, width, height, xOrigin = 0.5f, yOrigin = 0.5f, cornerRadius = min(width, height) * 0.5f)
 
         // Fill
-        val fillColor = if (editable && isInside(engine.input.xWorldMouse, engine.input.yWorldMouse)) fillColor * 1.1f else fillColor
-        surface.setDrawColor(fillColor)
+        surface.setDrawColor(
+            red = lerp(lowColor.red, highColor.red, a),
+            green = lerp(lowColor.green, highColor.green, a),
+            blue = lerp(lowColor.blue, highColor.blue, a)
+        )
         surface.drawTexture(
             texture = Texture.BLANK,
             x = x,
@@ -108,10 +121,13 @@ class Node : SceneEntity()
         )
 
         // Text
-        surface.setDrawColor(textColor)
-        surface.drawText(outputValue.format(), x, y, xOrigin = 0.5f, yOrigin = 0.5f, fontSize = textSize)
+        if (showText)
+        {
+            surface.setDrawColor(textColor)
+            surface.drawText(outputValue.format(), x, y, xOrigin = 0.5f, yOrigin = 0.5f, fontSize = textSize)
+        }
 
-        if (activationFunction == ActivationFunction.NONE)
+        if (!showActivationFunction || activationFunction == ActivationFunction.NONE)
             return
 
         // Activation indicator border
@@ -133,5 +149,12 @@ class Node : SceneEntity()
     {
         val radius = min(width, height) * 0.5f
         return (xPos - x) * (xPos - x) + (yPos - y) * (yPos - y) < radius * radius
+    }
+
+    companion object
+    {
+        private var lowFillColor = Color(47, 68, 94)
+        private var highFillColor = Color(94, 136, 188)
+        private var borderColor = Color(7, 7, 7)
     }
 }

@@ -3,7 +3,6 @@ package tools
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.input.CursorType
 import no.njoh.pulseengine.core.input.Mouse
-import no.njoh.pulseengine.core.shared.primitives.Color
 import java.util.*
 import kotlin.math.max
 
@@ -14,10 +13,9 @@ import kotlin.math.max
 fun Float.format() = String.format(Locale.ENGLISH, "%.2f", this)
 
 /**
- * Util function to multiply the RGB values of a [Color] object by a factor [v].
- * Returns a new instance of the [Color] object.
+ * Linear interpolates between [a] and [b] with value [v] in range 0.0 - 1.0.
  */
-operator fun Color.times(v: Float) = Color(red * v, green * v, blue * v, alpha)
+fun lerp(a: Float, b: Float, v: Float) = a * (1f - v) + b * v
 
 /**
  * Utility function to update a float value of a target entity using mouse input.
