@@ -1,5 +1,6 @@
 package neuralnet
 
+import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Texture
@@ -30,8 +31,9 @@ class Node : SceneEntity()
     /** The column index of the [Dataset] to sample the input attribute from. Used when the [Node] is an input node. */
     var attributeIndex = -1
 
-    /** If the [Node] is an output node this index defines which column in the [Dataset] is the actual target value. */
-    var targetValueIndex = -1
+    /** If the [Node] is an output node this index defines which column in the [Dataset] is the ideal target value. */
+    @JsonAlias("targetValueIndex")
+    var idealValueIndex = -1
 
     // Styling and interaction parameters
     var textColor = Color(255, 255, 255)
@@ -55,9 +57,9 @@ class Node : SceneEntity()
      */
     fun updateNodeValue(engine: PulseEngine)
     {
-        // Get node value from dataset if datasetId references a Dataset entity and the targetValueIndex is
+        // Get node value from dataset if datasetId references a Dataset entity and the idealValueIndex is
         // not set (indicating it is an output node)
-        if (datasetId >= 0 && attributeIndex >= 0 && targetValueIndex < 0)
+        if (datasetId >= 0 && attributeIndex >= 0 && idealValueIndex < 0)
         {
             engine.scene.getEntityOfType<Dataset>(datasetId)?.let()
             {
@@ -66,23 +68,22 @@ class Node : SceneEntity()
             }
         }
 
-        // Calculate the output value from connected Nodes.
-        var sum = 0f
+        // Calculate the output value from connected nodes
+        weightedSum = 0f
         var updateValue = false
-        engine.scene.forEachEntityOfType<Connection> { con ->
-            if (con.toNodeId == this.id)
+        engine.scene.forEachEntityOfType<Connection> { connection ->
+            if (connection.toNodeId == this.id)
             {
-                engine.scene.getEntityOfType<Node>(con.fromNodeId)?.let { fromNode ->
-                    sum += fromNode.outputValue * con.weight
+                engine.scene.getEntityOfType<Node>(connection.fromNodeId)?.let { fromNode ->
+                    weightedSum += fromNode.outputValue * connection.weight
                     updateValue = true
                 }
             }
         }
 
-        if (updateValue)
+        if (updateValue) // Got updated value from connected nodes
         {
-            weightedSum = sum
-            outputValue = activationFunction.compute(sum)
+            outputValue = activationFunction.compute(weightedSum)
         }
         else if (editable) // Manually edit value
         {

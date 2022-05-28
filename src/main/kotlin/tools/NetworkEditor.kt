@@ -72,7 +72,7 @@ class NetworkEditor : SceneSystem()
         // Find selected Nodes
         val selectedNodes = mutableListOf<Node>()
         engine.scene.forEachEntityOfType<Node> { if (it.isSet(SELECTED)) selectedNodes.add(it) }
-        selectedNodes.sortBy { if (it.datasetId < 0) 20000 else it.attributeIndex + it.targetValueIndex }
+        selectedNodes.sortBy { if (it.datasetId < 0) 20000 else it.attributeIndex + it.idealValueIndex }
 
         if (selectedNodes.isEmpty())
             return

@@ -13,7 +13,6 @@ import kotlin.math.sqrt
 
 /**
  * Neural network trainer implementing the backpropagation algorithm.
- * Accumulates weight corrections for the entire dataset before weights are updated (batch/offline learning).
  */
 class Trainer : SceneEntity(), Graphable<Int, Float>
 {
@@ -32,39 +31,44 @@ class Trainer : SceneEntity(), Graphable<Int, Float>
     /** The amount of previous weight correction to carry over to next training epoch. */
     var momentum = 0.8f
 
+    /** How many samples to accumulate corrections for before corrections are applied to the weight. */
+    var batchSize = 100
+
+    @JsonIgnore override val graphValues = mutableListOf<Pair<Int, Float>>()
     @JsonIgnore private var network = listOf<List<Node>>()
     @JsonIgnore private var outgoingConnections = mutableMapOf<Long, MutableList<Connection>>()
     @JsonIgnore private var nodeError = mutableMapOf<Long, Float>()
     @JsonIgnore private var accumulatedWeightCorrection = mutableMapOf<Long, Float>()
     @JsonIgnore private var lastWightCorrection = mutableMapOf<Long, Float>()
-    @JsonIgnore private var lastTrainingIterationTime = 0L
-    @JsonIgnore private var accumulatedTime = 0L
+    @JsonIgnore private var lastTrainingIterationTime = 0.0
+    @JsonIgnore private var accumulatedTime = 0.0
     @JsonIgnore private var accumulatedSquaredError = 0f
     @JsonIgnore private var meanSquaredError = 0f
+    @JsonIgnore private var trainedBatches = 0
+    @JsonIgnore private var trainedSamples = 0
     @JsonIgnore private var epoch = 0
-    @JsonIgnore override val graphValues = mutableListOf<Pair<Int, Float>>()
 
     override fun onStart(engine: PulseEngine)
     {
         network = buildLocalCachedNetwork(engine)
-        lastTrainingIterationTime = System.currentTimeMillis()
-        accumulatedTime = 0
+        lastTrainingIterationTime = System.currentTimeMillis().toDouble()
+        accumulatedTime = 0.0
     }
 
     override fun onUpdate(engine: PulseEngine)
     {
         // Calculate the amount of time available for training
-        val targetMillisBetweenIterations = (1000f / iterationsPerSecond).toLong()
-        accumulatedTime += System.currentTimeMillis() - lastTrainingIterationTime
+        val targetMillisBetweenIterations = 1000.0 / iterationsPerSecond
+        accumulatedTime += System.currentTimeMillis().toDouble() - lastTrainingIterationTime
 
         // Perform as many training iterations as room for in the given time budget
         while (accumulatedTime >= targetMillisBetweenIterations)
         {
-            accumulatedTime = max(0L, accumulatedTime - targetMillisBetweenIterations)
+            accumulatedTime = max(0.0, accumulatedTime - targetMillisBetweenIterations)
             if (trainNetwork && network.isNotEmpty())
                 trainOneIteration(engine)
         }
-        lastTrainingIterationTime = System.currentTimeMillis()
+        lastTrainingIterationTime = System.currentTimeMillis().toDouble()
 
         // TODO: Replace with UI buttons
         if (engine.input.wasClicked(Key.R)) resetNetwork(engine)
@@ -75,24 +79,25 @@ class Trainer : SceneEntity(), Graphable<Int, Float>
 
     /**
      * Calculates weight corrections for one sample of the dataset.
-     * Updates the connection weights when corrections for all samples have been accumulated.
      */
     private fun trainOneIteration(engine: PulseEngine)
     {
         // Get dataset by ID
         val dataset = engine.scene.getEntityOfType<Dataset>(datasetId) ?: return
-        val isLastSampleInDataset = dataset.isLastRowSelected()
+        val isLastSampleInDataset = dataset.isLastSampleSelected()
+        val applyCorrections = isLastSampleInDataset || (trainedSamples >= batchSize)
 
         // Update output values for all nodes (forward propagation)
-        for (layer in network)
-            for (node in layer)
+        network.forEachFast { layer ->
+            layer.forEachFast { node ->
                 node.updateNodeValue(engine)
+            }
+        }
 
         // Calculate difference between network output and target dataset value (compute loss function)
         val outputLayer = network.last()
-        for (node in outputLayer)
-        {
-            val targetValue = dataset.getSelectedValueAsFloat(node.targetValueIndex)
+        outputLayer.forEachFast { node ->
+            val targetValue = dataset.getSelectedValueAsFloat(node.idealValueIndex)
             val currentValue = node.outputValue
             val error = targetValue - currentValue
             accumulatedSquaredError += error * error
@@ -116,8 +121,8 @@ class Trainer : SceneEntity(), Graphable<Int, Float>
                     val accumulatedCorrection = accumulatedWeightCorrection[connection.id] ?: 0f
                     accumulatedWeightCorrection[connection.id] = accumulatedCorrection + newCorrection
 
-                    // Only apply weight corrections when corrections have been accumulated for all samples (batch/offline learning)
-                    if (isLastSampleInDataset)
+                    // Only apply weight corrections when they have been accumulated for the defined amount of samples
+                    if (applyCorrections)
                     {
                         // Calculate weight correction based on accumulated corrections and last correction
                         val currentCorrection = accumulatedWeightCorrection[connection.id] ?: 0f
@@ -133,16 +138,23 @@ class Trainer : SceneEntity(), Graphable<Int, Float>
             }
         }
 
-        // When we reach the last sample we update the mean squared error and epoch counter
-        if (isLastSampleInDataset)
+        trainedSamples++
+
+        // Take note of every trained batch
+        if (applyCorrections)
         {
-            meanSquaredError = accumulatedSquaredError / dataset.getRowCount()
-            graphValues.add(epoch to meanSquaredError)
+            trainedBatches++
+            meanSquaredError = accumulatedSquaredError / trainedSamples
+            graphValues.add(trainedBatches to meanSquaredError)
             accumulatedSquaredError = 0f
-            epoch++
+            trainedSamples = 0
         }
 
-        dataset.setNextRow() // Move on to the next sample/row
+        // When we reach the last sample we update the epoch counter
+        if (isLastSampleInDataset)
+            epoch++
+
+        dataset.selectNextSample() // Move on to the next sample/row
     }
 
     /**
@@ -155,7 +167,7 @@ class Trainer : SceneEntity(), Graphable<Int, Float>
         // Find output nodes
         val outputLayer = mutableListOf<Node>()
         engine.scene.forEachEntityOfType<Node> { node ->
-            if (node.datasetId == datasetId && node.targetValueIndex >= 0)
+            if (node.datasetId == datasetId && node.idealValueIndex >= 0)
                 outputLayer.add(node)
         }
 
@@ -217,9 +229,11 @@ class Trainer : SceneEntity(), Graphable<Int, Float>
         nodeError.clear()
         accumulatedWeightCorrection.clear()
         lastWightCorrection.clear()
-        accumulatedTime = 0
+        accumulatedTime = 0.0
         epoch = 0
-        engine.scene.getEntityOfType<Dataset>(datasetId)?.let { it.selectedRowIndex = 0 }
+        trainedSamples = 0
+        trainedBatches = 0
+        engine.scene.getEntityOfType<Dataset>(datasetId)?.selectFirstSample()
     }
 
     private inline fun Node.forEachOutgoingConnection(action: (Connection) -> Unit)

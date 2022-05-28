@@ -128,7 +128,7 @@ class NetworkGenerator : SceneSystem()
                         when (layerIndex)
                         {
                             0 -> newNode.attributeIndex = nodeIndex
-                            layerDefinitions.lastIndex -> newNode.targetValueIndex = columnCount - (totalLayerNodeCount - nodeIndex)
+                            layerDefinitions.lastIndex -> newNode.idealValueIndex = columnCount - (totalLayerNodeCount - nodeIndex)
                         }
                     }
 
