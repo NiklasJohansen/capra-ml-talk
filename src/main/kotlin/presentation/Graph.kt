@@ -111,6 +111,12 @@ class Graph : SceneEntity()
         val text = lastValue.second.toString()
         surface.setDrawColor(valueTextColor)
         surface.drawText(text, x0, y0, xOrigin = 0f, yOrigin = 0.5f, fontSize = valueTextSize)
+
+        // Update max values if last value is outside of graph range
+        val xLast = lastValue.first.toFloat()
+        val yLast = lastValue.second.toFloat()
+        if (xLast > xMaxValue) xMaxValue = xLast
+        if (yLast > yMaxValue) yMaxValue = yLast
     }
 
     /**
