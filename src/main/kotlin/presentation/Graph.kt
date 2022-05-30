@@ -105,6 +105,7 @@ class Graph : SceneEntity()
             surface.drawLine(x0, y0, x1, y1)
         }
 
+        // Draw last value text
         val lastValue = values.last()
         val x0 = xOrigin + width * (lastValue.first.toFloat() / xMaxValue) + 5
         val y0 = yOrigin - height * (lastValue.second.toFloat() / yMaxValue) - 5

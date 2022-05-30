@@ -43,49 +43,60 @@ class Node : SceneEntity()
     var showActivationFunction = true
     var borderSize = 3.5f
 
-    // Store weighted sum (sum before activation function) for use under training
+    /** Sum of all incoming connections before activation function is applied. */
     @JsonIgnore var weightedSum = 0f
+
+    /** Local cached array of IDs for incoming [Node]s and [Connection]s. */
+    @JsonIgnore private var incomingConnectionIds = LongArray(0)
+
+    override fun onStart(engine: PulseEngine)
+    {
+        // Create a local array of the IDs to all incoming connection (for faster lookup while computing outputValue)
+        incomingConnectionIds = engine.scene.getAllEntitiesOfType<Connection>()
+            ?.mapNotNull { con -> if (con.toNodeId == this.id) con.id else null }
+            ?.toLongArray()
+            ?: incomingConnectionIds
+    }
 
     override fun onUpdate(engine: PulseEngine)
     {
-        updateNodeValue(engine)
+        if (updateNodeValues)
+            computeOutputValue(engine)
     }
 
     /**
-     * Updates this nodes output value either by looking it up in a [Dataset] or by calculating
-     * it from other connected [Node]s.
+     * Updates the outputValue of the [Node].
+     * Will source the value from the specified dataset or compute the value from incoming [Connection]s.
      */
-    fun updateNodeValue(engine: PulseEngine)
+    fun computeOutputValue(engine: PulseEngine)
     {
-        // Get node value from dataset if datasetId references a Dataset entity and the idealValueIndex is
-        // not set (indicating it is an output node)
+        // Try to source the output value from the referenced dataset
         if (datasetId >= 0 && attributeIndex >= 0 && idealValueIndex < 0)
         {
             engine.scene.getEntityOfType<Dataset>(datasetId)?.let()
             {
                 outputValue = it.getSelectedValueAsFloat(attributeIndex)
-                return // No need to calculate further when source is dataset
+                return // No need to compute further when source is dataset
             }
         }
 
-        // Calculate the output value from connected nodes
+        // Reset previously calculated weightedSum
+        val lastWeightedSum = weightedSum
         weightedSum = 0f
-        var updateValue = false
-        engine.scene.forEachEntityOfType<Connection> { connection ->
-            if (connection.toNodeId == this.id)
-            {
-                engine.scene.getEntityOfType<Node>(connection.fromNodeId)?.let { fromNode ->
-                    weightedSum += fromNode.outputValue * connection.weight
-                    updateValue = true
-                }
-            }
+
+        // Compute weightedSum value from connected nodes
+        for (connectionId in incomingConnectionIds)
+        {
+            val connection = engine.scene.getEntityOfType<Connection>(connectionId) ?: continue
+            val fromNode = engine.scene.getEntityOfType<Node>(connection.fromNodeId) ?: continue
+            weightedSum += fromNode.outputValue * connection.weight
         }
 
-        if (updateValue) // Got updated value from connected nodes
+        if (weightedSum != lastWeightedSum) // Compute outputValue if weightedSum changed
         {
             outputValue = activationFunction.compute(weightedSum)
         }
-        else if (editable) // Manually edit value
+        else if (editable) // Edit value by mouse input if enabled
         {
             outputValue += editEntityValue(engine, id)
         }
@@ -146,6 +157,9 @@ class Node : SceneEntity()
         surface.drawText(activationFunction.name.take(1), x - width * 0.5f, y + size * 0.1f, xOrigin = 0.5f, yOrigin = 0.5f, fontSize = size)
     }
 
+    /**
+     * Returns true if the xPos,yPos coordinate is inside the radius of the [Node]
+     */
     fun isInside(xPos: Float, yPos: Float): Boolean
     {
         val radius = min(width, height) * 0.5f
@@ -154,6 +168,10 @@ class Node : SceneEntity()
 
     companion object
     {
+        /** Set true if nodes should be responsible for updating their own output values. */
+        var updateNodeValues = true
+
+        // Default color values
         private var lowFillColor = Color(47, 68, 94)
         private var highFillColor = Color(94, 136, 188)
         private var borderColor = Color(7, 7, 7)

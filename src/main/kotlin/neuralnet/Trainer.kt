@@ -26,7 +26,7 @@ class Trainer : SceneEntity(), Graphable<Int, Float>
     var iterationsPerSecond = 2f
 
     /** The amount of weight correction to apply to connections for each epoch (1.0 = 100%). */
-    var learningRate = 0.9f
+    var learningRate = 0.1f
 
     /** The amount of previous weight correction to carry over to next training epoch. */
     var momentum = 0.8f
@@ -35,7 +35,7 @@ class Trainer : SceneEntity(), Graphable<Int, Float>
     var batchSize = 100
 
     @JsonIgnore override val graphValues = mutableListOf<Pair<Int, Float>>()
-    @JsonIgnore private var network = listOf<List<Node>>()
+    @JsonIgnore private var networkLayers = listOf<List<Node>>()
     @JsonIgnore private var outgoingConnections = mutableMapOf<Long, MutableList<Connection>>()
     @JsonIgnore private var nodeError = mutableMapOf<Long, Float>()
     @JsonIgnore private var accumulatedWeightCorrection = mutableMapOf<Long, Float>()
@@ -50,7 +50,7 @@ class Trainer : SceneEntity(), Graphable<Int, Float>
 
     override fun onStart(engine: PulseEngine)
     {
-        network = buildLocalCachedNetwork(engine)
+        networkLayers = buildLocalCachedNetwork(engine)
         lastTrainingIterationTime = System.currentTimeMillis().toDouble()
         accumulatedTime = 0.0
     }
@@ -65,10 +65,14 @@ class Trainer : SceneEntity(), Graphable<Int, Float>
         while (accumulatedTime >= targetMillisBetweenIterations)
         {
             accumulatedTime = max(0.0, accumulatedTime - targetMillisBetweenIterations)
-            if (trainNetwork && network.isNotEmpty())
+            if (trainNetwork && networkLayers.isNotEmpty())
                 trainOneIteration(engine)
         }
         lastTrainingIterationTime = System.currentTimeMillis().toDouble()
+
+        // Make sure nodes are not responsible for updating their own output values if any Trainer is active
+        Node.updateNodeValues = true
+        engine.scene.forEachEntityOfType<Trainer> { if (it.trainNetwork) Node.updateNodeValues = false }
 
         // TODO: Replace with UI buttons
         if (engine.input.wasClicked(Key.R)) resetNetwork(engine)
@@ -88,14 +92,14 @@ class Trainer : SceneEntity(), Graphable<Int, Float>
         val applyCorrections = isLastSampleInDataset || (trainedSamples >= batchSize)
 
         // Update output values for all nodes (forward propagation)
-        network.forEachFast { layer ->
+        networkLayers.forEachFast { layer ->
             layer.forEachFast { node ->
-                node.updateNodeValue(engine)
+                node.computeOutputValue(engine)
             }
         }
 
         // Calculate difference between network output and target dataset value (compute loss function)
-        val outputLayer = network.last()
+        val outputLayer = networkLayers.last()
         outputLayer.forEachFast { node ->
             val targetValue = dataset.getSelectedValueAsFloat(node.idealValueIndex)
             val currentValue = node.outputValue
@@ -105,9 +109,9 @@ class Trainer : SceneEntity(), Graphable<Int, Float>
         }
 
         // Start correcting weights from the second to last layer and backwards (backward propagation)
-        for (layerIndex in (network.size - 2) downTo 0)
+        for (layerIndex in (networkLayers.size - 2) downTo 0)
         {
-            for (node in network[layerIndex])
+            for (node in networkLayers[layerIndex])
             {
                 // Calculate the weighted error for this node
                 var sum = 0f
@@ -209,9 +213,9 @@ class Trainer : SceneEntity(), Graphable<Int, Float>
      */
     private fun randomizeWeights()
     {
-        for ((i, layer) in network.withIndex())
+        for ((i, layer) in networkLayers.withIndex())
         {
-            val nextLayerSize = network.getOrNull(i + 1)?.size ?: 0
+            val nextLayerSize = networkLayers.getOrNull(i + 1)?.size ?: 0
             val variance = 2.0 / (layer.size + nextLayerSize)
             val standardDeviation = sqrt(variance).toFloat()
             for (node in layer)

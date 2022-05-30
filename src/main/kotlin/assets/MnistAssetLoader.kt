@@ -23,13 +23,11 @@ class MnistAssetLoader : SceneSystem()
     /** The max number of images to load from the dataset. */
     var maxImagesToLoad = 1000
 
-    /** Wheter to reduce the image sizes to half their original size. */
+    /** Whether to reduce the image sizes to half their original size or not. */
     var reduceToHalfSize = true
 
-    /** True if the dataset is currently being loaded. */
-    @JsonIgnore
-    private var isLoading = false
-    private var oldAssetName: String? = null
+    @JsonIgnore private var isLoading = false
+    @JsonIgnore private var oldAssetName: String? = null
 
     override fun onStart(engine: PulseEngine)
     {

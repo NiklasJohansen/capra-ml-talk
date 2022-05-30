@@ -48,6 +48,7 @@ class StyleSystem : SceneSystem()
             backgroundColor = backgroundColor
         )
     }
+
     override fun onUpdate(engine: PulseEngine)
     {
         engine.gfx.mainSurface.setMultisampling(multisampling)
