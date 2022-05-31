@@ -1,9 +1,12 @@
 package neuralnet
 
+import no.njoh.pulseengine.core.PulseEngine
+import presentation.EventListener
+
 /**
  * Provides functions to access data in a dataset.
  */
-interface Dataset
+interface Dataset : EventListener
 {
     /** The index of the selected sample. */
     val selectedSampleIndex: Int
@@ -25,4 +28,17 @@ interface Dataset
 
     /** Sets the next sample as the selected one. */
     fun selectNextSample()
+
+    /** Sets the previous sample as the selected one. */
+    fun selectPreviousSample()
+
+    /** Enables events to change selected samples. */
+    override fun handleEvent(engine: PulseEngine, eventMessage: String)
+    {
+        when (eventMessage)
+        {
+            "NEXT" -> selectNextSample()
+            "PREVIOUS" -> selectPreviousSample()
+        }
+    }
 }

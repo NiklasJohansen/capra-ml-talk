@@ -156,4 +156,10 @@ class Table : SceneEntity(), Dataset
 
     /** Increases the selected sample index by one. Wraps over to zero on last index. */
     override fun selectNextSample() { selectedSampleIndex = (selectedSampleIndex + 1) % getSampleCount() }
+
+    /** Decreases the selected sample index by one. Wraps over to the last row when crossing zero. */
+    override fun selectPreviousSample()
+    {
+        selectedSampleIndex = if (selectedSampleIndex - 1 < 0) getSampleCount() - 1 else selectedSampleIndex - 1
+    }
 }

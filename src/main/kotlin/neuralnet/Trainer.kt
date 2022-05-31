@@ -3,9 +3,9 @@ package neuralnet
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.graphics.Surface2D
-import no.njoh.pulseengine.core.input.Key
 import no.njoh.pulseengine.core.scene.SceneEntity
 import no.njoh.pulseengine.core.shared.utils.Extensions.forEachFast
+import presentation.EventListener
 import presentation.Graphable
 import tools.nextRandomGaussian
 import kotlin.math.max
@@ -14,7 +14,7 @@ import kotlin.math.sqrt
 /**
  * Neural network trainer implementing the backpropagation algorithm.
  */
-class Trainer : SceneEntity(), Graphable<Int, Float>
+class Trainer : SceneEntity(), Graphable<Int, Float>, EventListener
 {
     /** Set true to start training. */
     var trainNetwork = false
@@ -73,12 +73,6 @@ class Trainer : SceneEntity(), Graphable<Int, Float>
         // Make sure nodes are not responsible for updating their own output values if any Trainer is active
         Node.updateNodeValues = true
         engine.scene.forEachEntityOfType<Trainer> { if (it.trainNetwork) Node.updateNodeValues = false }
-
-        // TODO: Replace with UI buttons
-        if (engine.input.wasClicked(Key.R)) resetNetwork(engine)
-        if (engine.input.wasClicked(Key.ENTER)) trainNetwork = !trainNetwork
-        if (engine.input.wasClicked(Key.UP)) iterationsPerSecond += 10
-        if (engine.input.wasClicked(Key.DOWN)) iterationsPerSecond = max(0f, iterationsPerSecond - 10f)
     }
 
     /**
@@ -247,11 +241,26 @@ class Trainer : SceneEntity(), Graphable<Int, Float>
 
     override fun onRender(engine: PulseEngine, surface: Surface2D)
     {
-        // TODO: Create buttons to start, stop and reset training
-
         surface.setDrawColor(0f, 0f, 0f)
         surface.drawText("Squared ERROR: $meanSquaredError", x, y, xOrigin = 0.5f, yOrigin = 0.5f)
         surface.drawText("TickRate: $iterationsPerSecond", x, y + 20, xOrigin = 0.5f, yOrigin = 0.5f)
         surface.drawText("Epoch: $epoch", x, y + 40, xOrigin = 0.5f, yOrigin = 0.5f)
+    }
+
+    /**
+     * Handles incoming events.
+     */
+    override fun handleEvent(engine: PulseEngine, eventMessage: String)
+    {
+        when (eventMessage)
+        {
+            "START" -> trainNetwork = true
+            "STOP" -> {
+                trainNetwork = false
+                iterationsPerSecond = 1f
+            }
+            "RESET" -> resetNetwork(engine)
+            "SPEED_UP" -> iterationsPerSecond *= 1.5f
+        }
     }
 }

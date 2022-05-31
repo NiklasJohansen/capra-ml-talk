@@ -5,7 +5,6 @@ import assets.ImageDatasetAsset
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.graphics.Surface2D
-import no.njoh.pulseengine.core.input.Key
 import no.njoh.pulseengine.core.input.Mouse
 import no.njoh.pulseengine.core.scene.SceneEntity
 import kotlin.math.max
@@ -46,9 +45,6 @@ class ImageSet : SceneEntity(), Dataset
 
             dataset.setPixelValue(selectedSampleIndex, pixelIndex, pixelValue.coerceIn(0f, 1f))
         }
-
-        if (engine.input.wasClicked(Key.UP)) selectNextSample()
-        if (engine.input.wasClicked(Key.DOWN)) selectPreviousSample()
     }
 
     /**
@@ -103,7 +99,7 @@ class ImageSet : SceneEntity(), Dataset
     override fun selectNextSample() { selectedSampleIndex = (selectedSampleIndex + 1) % dataset.imageCount }
 
     /** Sets the selected image to the previous one. */
-    fun selectPreviousSample()
+    override fun selectPreviousSample()
     {
         selectedSampleIndex = if (selectedSampleIndex - 1 < 0) dataset.imageCount - 1 else selectedSampleIndex - 1
     }
