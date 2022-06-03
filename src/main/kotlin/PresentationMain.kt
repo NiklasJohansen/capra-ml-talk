@@ -14,8 +14,17 @@ class PresentationMain : PulseEngineGame()
         engine.window.title = "Neural Network Presentation"
         engine.widget.add(CommandLine(), Profiler(), SceneEditor())
 
-        val isSceneFileInSaveDirectory = engine.data.exists("scenes/nnp-0.scn")
-        engine.scene.loadAndSetActive("scenes/nnp-0.scn", fromClassPath = !isSceneFileInSaveDirectory)
+        // Load initial assets
+        engine.asset.loadTexture("/assets/play.png", "play")
+        engine.asset.loadTexture("/assets/pause.png", "pause")
+        engine.asset.loadTexture("/assets/next.png", "next")
+        engine.asset.loadTexture("/assets/reset.png", "reset")
+        engine.asset.loadTexture("/assets/fast_forward.png", "fast_forward")
+
+        // Load first scene either from save directory or from classpath
+        val startSceneFileName = "scenes/nnp-0.scn"
+        val isSceneFileInSaveDirectory = engine.data.exists(startSceneFileName)
+        engine.scene.loadAndSetActive(startSceneFileName, fromClassPath = !isSceneFileInSaveDirectory)
         engine.scene.start()
     }
 

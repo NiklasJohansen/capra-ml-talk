@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.graphics.Surface2D
+import no.njoh.pulseengine.core.input.CursorType
 import no.njoh.pulseengine.core.input.Key
 import no.njoh.pulseengine.core.input.Mouse
 import no.njoh.pulseengine.core.scene.SceneEntity
@@ -63,6 +64,10 @@ class Button : SceneEntity()
         val isMouseClicked = engine.input.wasClicked(Mouse.LEFT)
         val checkKey = (triggerOnKeyPress && isRelevantSlideIndex(engine))
 
+        // Update cursor
+        if (isMouseInsideButton)
+            engine.input.setCursor(CursorType.HAND)
+
         val newState = when (switchType)
         {
             MOMENTARY ->
@@ -115,7 +120,7 @@ class Button : SceneEntity()
         val texture = engine.asset.getOrNull(textureName) ?: Texture.BLANK
 
         surface.setDrawColor(color)
-        surface.drawTexture(texture, x, y, width, height, xOrigin = 0.5f, yOrigin = 0.5f, cornerRadius = cornerRadius)
+        surface.drawTexture(texture, x, y, width, height,  rotation, 0.5f, 0.5f, cornerRadius)
     }
 
     /**

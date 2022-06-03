@@ -2,8 +2,10 @@ package neuralnet
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.njoh.pulseengine.core.PulseEngine
+import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.graphics.Surface2D
 import no.njoh.pulseengine.core.scene.SceneEntity
+import no.njoh.pulseengine.core.scene.SceneState
 import no.njoh.pulseengine.core.shared.utils.Extensions.forEachFast
 import presentation.EventListener
 import presentation.Graphable
@@ -241,10 +243,14 @@ class Trainer : SceneEntity(), Graphable<Int, Float>, EventListener
 
     override fun onRender(engine: PulseEngine, surface: Surface2D)
     {
-        surface.setDrawColor(0f, 0f, 0f)
-        surface.drawText("Squared ERROR: $meanSquaredError", x, y, xOrigin = 0.5f, yOrigin = 0.5f)
-        surface.drawText("TickRate: $iterationsPerSecond", x, y + 20, xOrigin = 0.5f, yOrigin = 0.5f)
-        surface.drawText("Epoch: $epoch", x, y + 40, xOrigin = 0.5f, yOrigin = 0.5f)
+        if (engine.scene.state != SceneState.STOPPED)
+            return // Only draw Trainer in editor
+
+        surface.setDrawColor(0.1f,0.1f, 0.1f, 1f)
+        surface.drawTexture(Texture.BLANK, x, y, width, height, xOrigin = 0.5f, yOrigin = 0.5f)
+        surface.setDrawColor(1f,1f, 1f, 1f)
+        surface.drawText("Trainer", x, y - 10f, xOrigin = 0.5f, yOrigin = 0.5f, fontSize = 30f)
+        surface.drawText("($id)", x, y + 15f, xOrigin = 0.5f, yOrigin = 0.5f)
     }
 
     /**

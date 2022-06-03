@@ -44,6 +44,7 @@ class StyleSystem : SceneSystem()
     {
         // Create separate background surface to draw vignette on
         engine.gfx.createSurface(name = BG_SURFACE_NAME, zOrder = 50, backgroundColor = backgroundColor)
+        engine.gfx.mainSurface.setBackgroundColor(1f, 1f, 1f, 0f)
     }
 
     override fun onUpdate(engine: PulseEngine)
