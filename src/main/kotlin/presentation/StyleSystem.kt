@@ -8,7 +8,7 @@ import no.njoh.pulseengine.core.scene.SceneSystem
 import no.njoh.pulseengine.core.shared.primitives.Color
 
 /**
- * System to control visual style parameters.
+ * System to control global styling parameters.
  */
 class StyleSystem : SceneSystem()
 {
@@ -42,11 +42,8 @@ class StyleSystem : SceneSystem()
 
     override fun onCreate(engine: PulseEngine)
     {
-        engine.gfx.createSurface(
-            name = BG_SURFACE_NAME,
-            zOrder = engine.gfx.mainSurface.context.zOrder + 1, // Render before mainSurface
-            backgroundColor = backgroundColor
-        )
+        // Create separate background surface to draw vignette on
+        engine.gfx.createSurface(name = BG_SURFACE_NAME, zOrder = 50, backgroundColor = backgroundColor)
     }
 
     override fun onUpdate(engine: PulseEngine)
