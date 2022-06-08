@@ -1,7 +1,7 @@
 package tools
 
-import neuralnet.Connection
-import neuralnet.Node
+import network.Connection
+import network.Node
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.input.Key
 import no.njoh.pulseengine.core.input.Mouse
@@ -72,7 +72,7 @@ class NetworkEditor : SceneSystem()
         // Find selected Nodes
         val selectedNodes = mutableListOf<Node>()
         engine.scene.forEachEntityOfType<Node> { if (it.isSet(SELECTED)) selectedNodes.add(it) }
-        selectedNodes.sortBy { if (it.datasetId < 0) 20000 else it.attributeIndex + it.idealValueIndex }
+        selectedNodes.sortBy { if (it.dataSourceId < 0) 20000 else it.attributeValueIndex + it.targetValueIndex }
 
         if (selectedNodes.isEmpty())
             return

@@ -1,4 +1,4 @@
-package neuralnet
+package data
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.njoh.pulseengine.core.PulseEngine
@@ -135,18 +135,18 @@ class Table : SceneEntity(), Dataset
     }
 
     /** Returns the value of the currently selected sample at the given column index. */
-    override fun getSelectedValueAsFloat(columnIndex: Int): Float
+    override fun getAttributeValue(index: Int): Float
     {
         val rowIndex = (max(selectedSampleIndex, 0) + (if (hasHeaders) 1 else 0)).coerceIn(0, table.height - 1)
-        val colIndex = columnIndex.coerceIn(0, table.width - 1)
+        val colIndex = index.coerceIn(0, table.width - 1)
         return table[colIndex, rowIndex]?.toFloatOrNull() ?: -1f
     }
 
+    /** Returns the number of columns per row. */
+    override fun getAttributeCount(): Int = table.width
+
     /** Returns the number of samples with actual data (ignores the header row). */
     override fun getSampleCount(): Int = table.height - if (hasHeaders) 1 else 0
-
-    /** Returns the number of columns per row. */
-    override fun getColumnCount(): Int = table.width
 
     /** Returns true if the current selected sample index is the last sample in the dataset. */
     override fun isLastSampleSelected(): Boolean = (selectedSampleIndex == (getSampleCount() - 1))

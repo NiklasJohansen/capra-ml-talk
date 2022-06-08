@@ -1,11 +1,9 @@
 package tools
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import neuralnet.ActivationFunction
-import neuralnet.Connection
-import neuralnet.Connection.Companion.NOT_SET
-import neuralnet.Dataset
-import neuralnet.Node
+import data.DataSource
+import network.*
+import network.Connection.Companion.NOT_SET
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.input.Key
 import no.njoh.pulseengine.core.input.Mouse
@@ -39,6 +37,9 @@ class NetworkGenerator : SceneSystem()
     /** Whether node text should be visible and editable or not. */
     var nodeTextVisible = true
 
+    /** Font size of node text. */
+    var nodeTextSize = 28f
+
     /** Whether activation function marker on [Node] should be visible or not. */
     var nodeActivationFunctionVisible = true
 
@@ -48,8 +49,8 @@ class NetworkGenerator : SceneSystem()
     /** Activation function to use in output layers. */
     var outputLayerFunction = ActivationFunction.SIGMOID
 
-    /** ID of the dataset to configure the input and output nodes to source their values from. */
-    var datasetId = -1L
+    /** ID of the [DataSource] to configure the input and output nodes with. */
+    var dataSourceId = -1L
 
     @JsonIgnore
     private var newConnection = createNewConnection()
@@ -82,7 +83,7 @@ class NetworkGenerator : SceneSystem()
 
         val xm = engine.input.xWorldMouse
         val ym = engine.input.yWorldMouse
-        val dataset = engine.scene.getEntityOfType<Dataset>(datasetId)
+        val dataSource = engine.scene.getEntityOfType<DataSource>(dataSourceId)
         var lastLayerNodes = mutableListOf<Node>()
 
         for ((layerIndex, layerDef) in layerDefinitions.withIndex())
@@ -102,6 +103,7 @@ class NetworkGenerator : SceneSystem()
                     y = yStart + nodeIndex * (nodeSize + nodeSpacing)
                     width = nodeSize
                     height = nodeSize
+                    textSize = nodeTextSize
                     showText = nodeTextVisible
                     editable = nodeTextVisible
                     showActivationFunction = nodeActivationFunctionVisible
@@ -120,15 +122,15 @@ class NetworkGenerator : SceneSystem()
 
                 if (!isBiasNode)
                 {
-                    // Set attributes related to dataset
-                    if (dataset != null)
+                    // Set attributes related to data source
+                    if (dataSource != null)
                     {
-                        newNode.datasetId = datasetId
-                        val columnCount = dataset.getColumnCount()
+                        newNode.dataSourceId = dataSourceId
+                        val attributeCount = dataSource.getAttributeCount()
                         when (layerIndex)
                         {
-                            0 -> newNode.attributeIndex = nodeIndex
-                            layerDefinitions.lastIndex -> newNode.idealValueIndex = columnCount - (totalLayerNodeCount - nodeIndex)
+                            0 -> newNode.attributeValueIndex = nodeIndex
+                            layerDefinitions.lastIndex -> newNode.targetValueIndex = attributeCount - (totalLayerNodeCount - nodeIndex)
                         }
                     }
 

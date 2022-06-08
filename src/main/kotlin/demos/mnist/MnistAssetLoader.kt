@@ -1,4 +1,4 @@
-package assets
+package demos.mnist
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.njoh.pulseengine.core.PulseEngine

@@ -1,4 +1,4 @@
-package neuralnet
+package network
 import kotlin.math.exp
 import kotlin.math.tanh
 

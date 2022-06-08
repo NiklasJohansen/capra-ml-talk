@@ -1,7 +1,7 @@
-package neuralnet
+package network
 
-import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonIgnore
+import data.DataSource
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.graphics.Surface2D
@@ -25,15 +25,14 @@ class Node : SceneEntity()
     /** The activation function to apply when calculating the outputValue from the connected input nodes. */
     var activationFunction = ActivationFunction.SIGMOID
 
-    /** The ID of the [Dataset] to source the output value from. Set to -1 if no dataset should be used. */
-    var datasetId = -1L
+    /** The ID of the [DataSource] to source the output value from. Set to -1 if no data source should be used. */
+    var dataSourceId = -1L
 
-    /** The column index of the [Dataset] to sample the input attribute from. Used when the [Node] is an input node. */
-    var attributeIndex = -1
+    /** The column index of the [DataSource] to sample the input attribute from. Used when the [Node] is an input node. */
+    var attributeValueIndex = -1
 
-    /** If the [Node] is an output node this index defines which column in the [Dataset] is the ideal target value. */
-    @JsonAlias("targetValueIndex")
-    var idealValueIndex = -1
+    /** If the [Node] is an output node this index defines the column containing the target value in the [DataSource]. */
+    var targetValueIndex = -1
 
     // Styling and interaction parameters
     var textColor = Color(255, 255, 255)
@@ -66,17 +65,17 @@ class Node : SceneEntity()
 
     /**
      * Updates the outputValue of the [Node].
-     * Will source the value from the specified dataset or compute the value from incoming [Connection]s.
+     * Will source the value from the specified [DataSource] or compute the value from incoming [Connection]s.
      */
     fun computeOutputValue(engine: PulseEngine)
     {
-        // Try to source the output value from the referenced dataset
-        if (datasetId >= 0 && attributeIndex >= 0 && idealValueIndex < 0)
+        // Try to source the output value from the referenced data source
+        if (dataSourceId >= 0 && attributeValueIndex >= 0 && targetValueIndex < 0)
         {
-            engine.scene.getEntityOfType<Dataset>(datasetId)?.let()
+            engine.scene.getEntityOfType<DataSource>(dataSourceId)?.let()
             {
-                outputValue = it.getSelectedValueAsFloat(attributeIndex)
-                return // No need to compute further when source is dataset
+                outputValue = it.getAttributeValue(attributeValueIndex)
+                return // No need to compute further when source is data source
             }
         }
 

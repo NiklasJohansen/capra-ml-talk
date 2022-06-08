@@ -1,7 +1,5 @@
-package neuralnet
+package data
 
-import assets.EmptyImageDataset
-import assets.ImageDatasetAsset
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.graphics.Surface2D
@@ -74,20 +72,20 @@ class ImageSet : SceneEntity(), Dataset
     }
 
     /** Returns the value of the currently selected image at the given pixel index. */
-    override fun getSelectedValueAsFloat(columnIndex: Int): Float
+    override fun getAttributeValue(index: Int): Float
     {
         val sampleIndex = (max(selectedSampleIndex, 0)).coerceIn(0, dataset.imageCount - 1)
-        return if (columnIndex < dataset.pixelCount)
-            dataset.getPixelValue(sampleIndex, columnIndex)
+        return if (index < dataset.pixelCount)
+            dataset.getPixelValue(sampleIndex, index)
         else
-            dataset.getLabelValue(sampleIndex, columnIndex - dataset.pixelCount)
+            dataset.getLabelValue(sampleIndex, index - dataset.pixelCount)
     }
+
+    /** Returns the number of attributes per sample (pixelCount + idealValues). */
+    override fun getAttributeCount(): Int = dataset.pixelCount + dataset.labelCount
 
     /** Returns the number of images in the dataset. */
     override fun getSampleCount(): Int = dataset.imageCount
-
-    /** Returns the number of columns per sample (pixelCount + idealValues). */
-    override fun getColumnCount(): Int = dataset.pixelCount + dataset.labelCount
 
     /** Returns true if the current selected images is the last images in the dataset. */
     override fun isLastSampleSelected(): Boolean = selectedSampleIndex == dataset.imageCount - 1

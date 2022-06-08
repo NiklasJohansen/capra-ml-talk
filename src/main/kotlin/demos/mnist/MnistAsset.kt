@@ -1,5 +1,6 @@
-package assets
+package demos.mnist
 
+import data.ImageDatasetAsset
 import no.njoh.pulseengine.core.shared.primitives.Array2D
 import no.njoh.pulseengine.core.shared.utils.Logger
 import java.io.DataInputStream

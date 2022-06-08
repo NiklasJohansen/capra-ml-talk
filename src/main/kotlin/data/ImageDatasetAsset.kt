@@ -1,4 +1,4 @@
-package assets
+package data
 
 import no.njoh.pulseengine.core.asset.types.Asset
 import no.njoh.pulseengine.core.shared.primitives.Array2D

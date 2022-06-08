@@ -1,6 +1,7 @@
-package neuralnet
+package network
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import data.Dataset
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.graphics.Surface2D
@@ -97,7 +98,7 @@ class Trainer : SceneEntity(), Graphable<Int, Float>, EventListener
         // Calculate difference between network output and target dataset value (compute loss function)
         val outputLayer = networkLayers.last()
         outputLayer.forEachFast { node ->
-            val targetValue = dataset.getSelectedValueAsFloat(node.idealValueIndex)
+            val targetValue = dataset.getAttributeValue(node.targetValueIndex)
             val currentValue = node.outputValue
             val error = targetValue - currentValue
             accumulatedSquaredError += error * error
@@ -167,7 +168,7 @@ class Trainer : SceneEntity(), Graphable<Int, Float>, EventListener
         // Find output nodes
         val outputLayer = mutableListOf<Node>()
         engine.scene.forEachEntityOfType<Node> { node ->
-            if (node.datasetId == datasetId && node.idealValueIndex >= 0)
+            if (node.dataSourceId == datasetId && node.targetValueIndex >= 0)
                 outputLayer.add(node)
         }
 

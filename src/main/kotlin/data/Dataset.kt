@@ -1,24 +1,18 @@
-package neuralnet
+package data
 
 import no.njoh.pulseengine.core.PulseEngine
 import presentation.EventListener
 
 /**
- * Provides functions to access data in a dataset.
+ * Provides functions to get data samples from a dataset.
  */
-interface Dataset : EventListener
+interface Dataset : DataSource, EventListener
 {
     /** The index of the selected sample. */
     val selectedSampleIndex: Int
 
-    /** Returns the value of the currently selected sample at the given column index. */
-    fun getSelectedValueAsFloat(columnIndex: Int): Float
-
     /** Returns the number of samples in the dataset. */
     fun getSampleCount(): Int
-
-    /** Returns the number of columns per row. */
-    fun getColumnCount(): Int
 
     /** Returns true if the current selected sample is the last sample in the dataset. */
     fun isLastSampleSelected(): Boolean
