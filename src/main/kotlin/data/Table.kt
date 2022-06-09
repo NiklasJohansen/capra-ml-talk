@@ -6,9 +6,10 @@ import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.graphics.Surface2D
 import no.njoh.pulseengine.core.input.CursorType
 import no.njoh.pulseengine.core.input.Mouse
-import no.njoh.pulseengine.core.scene.SceneEntity
 import no.njoh.pulseengine.core.shared.primitives.Array2D
 import no.njoh.pulseengine.core.shared.primitives.Color
+import presentation.PresentationEntity
+import tools.setDrawColor
 import kotlin.math.max
 
 /**
@@ -16,7 +17,7 @@ import kotlin.math.max
  * Can be queried from an input [Node] to determine the nodes output value.
  * Also used to get the actual target value for an output node while training.
  */
-class Table : SceneEntity(), Dataset
+class Table : PresentationEntity(), Dataset
 {
     /** String representation of the dataset used to populate the dataset. */
     var values = ""
@@ -70,7 +71,7 @@ class Table : SceneEntity(), Dataset
     /**
      * Render the dataset as a table.
      */
-    override fun onRender(engine: PulseEngine, surface: Surface2D)
+    override fun onDrawToScreen(engine: PulseEngine, surface: Surface2D)
     {
         val rowHeight = height / table.height
         val colWidth = width / table.width
@@ -78,13 +79,13 @@ class Table : SceneEntity(), Dataset
         val yStart = y - height * 0.5f
 
         // Table background
-        surface.setDrawColor(tableColor)
+        surface.setDrawColor(tableColor, visibility)
         surface.drawTexture(Texture.BLANK, xStart, yStart, width, height)
 
         // Table header
         if (hasHeaders)
         {
-            surface.setDrawColor(headerColor)
+            surface.setDrawColor(headerColor, visibility)
             surface.drawTexture(Texture.BLANK, xStart, yStart, width, rowHeight)
         }
 
@@ -92,12 +93,12 @@ class Table : SceneEntity(), Dataset
         if (selectedSampleIndex >= 0)
         {
             val index = selectedSampleIndex + (if (hasHeaders) 1 else 0)
-            surface.setDrawColor(selectedColor)
+            surface.setDrawColor(selectedColor, visibility)
             surface.drawTexture(Texture.BLANK, xStart, yStart + index * rowHeight, width + borderSize, rowHeight)
         }
 
         // Horizontal lines
-        surface.setDrawColor(0f, 0f, 0f)
+        surface.setDrawColor(0f, 0f, 0f, visibility)
         for (yIndex in 0 until table.height + 1)
             surface.drawTexture(Texture.BLANK, xStart, yStart + yIndex * rowHeight, width + borderSize, borderSize)
 

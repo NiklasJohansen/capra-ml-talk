@@ -12,11 +12,12 @@ import no.njoh.pulseengine.core.shared.primitives.Color
 import presentation.Button.ButtonState.*
 import presentation.Button.SwitchType.MOMENTARY
 import presentation.Button.SwitchType.TOGGLE
+import tools.setDrawColor
 
 /**
  * This entity is a button used to capture and forward messages about mouse or key presses.
  */
-class Button : SceneEntity()
+class Button : PresentationEntity()
 {
     /** ID of the entity to send a message to when the [ButtonState] changes. */
     var targetEntityId = -1L
@@ -102,7 +103,7 @@ class Button : SceneEntity()
     /**
      * Draw the button to screen.
      */
-    override fun onRender(engine: PulseEngine, surface: Surface2D)
+    override fun onDrawToScreen(engine: PulseEngine, surface: Surface2D)
     {
         val color = when (state)
         {
@@ -119,7 +120,7 @@ class Button : SceneEntity()
 
         val texture = engine.asset.getOrNull(textureName) ?: Texture.BLANK
 
-        surface.setDrawColor(color)
+        surface.setDrawColor(color, visibility)
         surface.drawTexture(texture, x, y, width, height,  rotation, 0.5f, 0.5f, cornerRadius)
     }
 

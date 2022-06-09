@@ -4,14 +4,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.graphics.Surface2D
 import no.njoh.pulseengine.core.input.Mouse
-import no.njoh.pulseengine.core.scene.SceneEntity
+import presentation.PresentationEntity
 import kotlin.math.max
 
 /**
  * This entity represent a dataset of images and can be used to manipulate and draw the images on screen.
  * It implements the [Dataset] interface and can be a source of data for input and output [Node]s.
  */
-class ImageSet : SceneEntity(), Dataset
+class ImageSet : PresentationEntity(), Dataset
 {
     /** The name of the dataset asset to source images/samples from. */
     var datasetAssetName: String = ""
@@ -48,7 +48,7 @@ class ImageSet : SceneEntity(), Dataset
     /**
      * Draw the selected image from the dataset.
      */
-    override fun onRender(engine: PulseEngine, surface: Surface2D)
+    override fun onDrawToScreen(engine: PulseEngine, surface: Surface2D)
     {
         // Get a reference to the dataset
         dataset = engine.asset.getOrNull(datasetAssetName) ?: EMPTY_DATASET
@@ -65,7 +65,7 @@ class ImageSet : SceneEntity(), Dataset
             for (xIndex in 0 until dataset.imageWidth)
             {
                 val v = 1f - dataset.getPixelValue(imageIndex, pixelIndex++) // Invert value to have 1.0=black and 0.0=white
-                surface.setDrawColor(v, v, v)
+                surface.setDrawColor(v, v, v, visibility)
                 surface.drawQuad(xStart + xIndex * pixelWidth, yStart + yIndex * pixelHeight, pixelWidth, pixelHeight)
             }
         }

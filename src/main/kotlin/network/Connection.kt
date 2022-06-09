@@ -2,18 +2,19 @@ package network
 
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.graphics.Surface2D
-import no.njoh.pulseengine.core.scene.SceneEntity
 import no.njoh.pulseengine.core.shared.primitives.Color
+import presentation.PresentationEntity
 import presentation.StyleSystem
 import tools.editEntityValue
 import tools.format
+import tools.setDrawColor
 import kotlin.math.abs
 import kotlin.math.max
 
 /**
  * This entity represent a connection between two [Node]s.
  */
-class Connection : SceneEntity()
+class Connection : PresentationEntity()
 {
     /** The weight value of this connection. */
     var weight = 0f
@@ -41,7 +42,7 @@ class Connection : SceneEntity()
             set(DEAD)
     }
 
-    override fun onRender(engine: PulseEngine, surface: Surface2D)
+    override fun onDrawToScreen(engine: PulseEngine, surface: Surface2D)
     {
         val fromNode = engine.scene.getEntityOfType<Node>(fromNodeId)
         val toNode = engine.scene.getEntityOfType<Node>(toNodeId)
@@ -63,7 +64,7 @@ class Connection : SceneEntity()
         // Draw weight value text if enabled
         if (showText)
         {
-            surface.setDrawColor(textColor)
+            surface.setDrawColor(textColor, visibility)
             surface.drawText(
                 text = weight.format(),
                 x = x,
@@ -81,7 +82,7 @@ class Connection : SceneEntity()
         val negativeColor = style?.connectionNegativeColor ?: negativeColor
         val positiveColor = style?.connectionPositiveColor ?: positiveColor
         val w = weight.coerceIn(-1f, 1f)
-        val alpha = max(abs(w), 0.3f)
+        val alpha = max(abs(w), 0.5f) * visibility
         when
         {
             weight < 0 -> setDrawColor(negativeColor.red, negativeColor.green, negativeColor.blue, alpha)

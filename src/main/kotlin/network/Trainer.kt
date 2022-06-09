@@ -10,6 +10,7 @@ import no.njoh.pulseengine.core.scene.SceneState
 import no.njoh.pulseengine.core.shared.utils.Extensions.forEachFast
 import presentation.EventListener
 import presentation.Graphable
+import presentation.PresentationEntity
 import tools.nextRandomGaussian
 import kotlin.math.max
 import kotlin.math.sqrt
@@ -17,7 +18,7 @@ import kotlin.math.sqrt
 /**
  * Neural network trainer implementing the backpropagation algorithm.
  */
-class Trainer : SceneEntity(), Graphable<Int, Float>, EventListener
+class Trainer : PresentationEntity(), Graphable<Int, Float>, EventListener
 {
     /** Set true to start training. */
     var trainNetwork = false
@@ -242,14 +243,14 @@ class Trainer : SceneEntity(), Graphable<Int, Float>, EventListener
         outgoingConnections[this.id]?.forEachFast { action(it) }
     }
 
-    override fun onRender(engine: PulseEngine, surface: Surface2D)
+    override fun onDrawToScreen(engine: PulseEngine, surface: Surface2D)
     {
         if (engine.scene.state != SceneState.STOPPED)
             return // Only draw Trainer in editor
 
-        surface.setDrawColor(0.1f,0.1f, 0.1f, 1f)
+        surface.setDrawColor(0.1f,0.1f, 0.1f, visibility)
         surface.drawTexture(Texture.BLANK, x, y, width, height, xOrigin = 0.5f, yOrigin = 0.5f)
-        surface.setDrawColor(1f,1f, 1f, 1f)
+        surface.setDrawColor(1f,1f, 1f, visibility)
         surface.drawText("Trainer", x, y - 10f, xOrigin = 0.5f, yOrigin = 0.5f, fontSize = 30f)
         surface.drawText("($id)", x, y + 15f, xOrigin = 0.5f, yOrigin = 0.5f)
     }

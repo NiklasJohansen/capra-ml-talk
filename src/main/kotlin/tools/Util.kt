@@ -1,8 +1,11 @@
 package tools
 
 import no.njoh.pulseengine.core.PulseEngine
+import no.njoh.pulseengine.core.graphics.Surface2D
 import no.njoh.pulseengine.core.input.CursorType
 import no.njoh.pulseengine.core.input.Mouse
+import no.njoh.pulseengine.core.scene.SceneManager
+import no.njoh.pulseengine.core.shared.primitives.Color
 import java.util.*
 import kotlin.math.max
 
@@ -16,6 +19,12 @@ fun Float.format() = String.format(Locale.ENGLISH, "%.2f", this)
  * Linear interpolates between [a] and [b] with value [v] in range 0.0 - 1.0.
  */
 fun lerp(a: Float, b: Float, v: Float) = a * (1f - v) + b * v
+
+/**
+ * Shorthand function to set the draw color of a [Surface2D] along with a given alpha value (transparency).
+ */
+fun Surface2D.setDrawColor(color: Color, alpha: Float) =
+    setDrawColor(color.red, color.green, color.blue, color.alpha * alpha)
 
 /**
  * Utility function to update a float value of a target entity using mouse input.
@@ -53,3 +62,16 @@ var selectedEntity: Long? = null
  */
 fun nextRandomGaussian() = random.nextGaussian().toFloat()
 private val random = Random() // java.util.Random provides .nextGaussian() function
+
+/**
+ * Util function to loop through all scene entities implementing type [T].
+ */
+inline fun <reified T> SceneManager.forEachEntityImplementing(action: (T) -> Unit)
+{
+    this.forEachEntityTypeList { list ->
+        // Each list contains entities of a single subclass of SceneEntity.
+        // So if the first entity is of type T, all entities in the list will be of type T.
+        if (list[0] is T)
+            list.forEachFast { action(it as T) }
+    }
+}

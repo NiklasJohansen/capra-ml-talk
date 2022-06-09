@@ -5,19 +5,20 @@ import data.DataSource
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.graphics.Surface2D
-import no.njoh.pulseengine.core.scene.SceneEntity
 import no.njoh.pulseengine.core.shared.primitives.Color
+import presentation.PresentationEntity
 import presentation.StyleSystem
 import kotlin.math.min
 import tools.editEntityValue
 import tools.format
 import tools.lerp
+import tools.setDrawColor
 import kotlin.math.abs
 
 /**
  * This entity represent a neuron / brain-cell.
  */
-class Node : SceneEntity()
+class Node : PresentationEntity()
 {
     /** The output value of the node. */
     var outputValue = 0.5f
@@ -101,7 +102,7 @@ class Node : SceneEntity()
         }
     }
 
-    override fun onRender(engine: PulseEngine, surface: Surface2D)
+    override fun onDrawToScreen(engine: PulseEngine, surface: Surface2D)
     {
         // Get colors from StyleSystem
         val style = engine.scene.getSystemOfType<StyleSystem>()
@@ -111,14 +112,15 @@ class Node : SceneEntity()
         val a = abs(outputValue).coerceAtMost(1f)
 
         // Border
-        surface.setDrawColor(borderColor)
+        surface.setDrawColor(borderColor, visibility)
         surface.drawTexture(Texture.BLANK, x, y, width, height, xOrigin = 0.5f, yOrigin = 0.5f, cornerRadius = min(width, height) * 0.5f)
 
         // Fill
         surface.setDrawColor(
             red = lerp(lowColor.red, highColor.red, a),
             green = lerp(lowColor.green, highColor.green, a),
-            blue = lerp(lowColor.blue, highColor.blue, a)
+            blue = lerp(lowColor.blue, highColor.blue, a),
+            alpha = visibility
         )
         surface.drawTexture(
             texture = Texture.BLANK,
@@ -134,7 +136,7 @@ class Node : SceneEntity()
         // Text
         if (showText)
         {
-            surface.setDrawColor(textColor)
+            surface.setDrawColor(textColor, visibility)
             surface.drawText(outputValue.format(), x, y, xOrigin = 0.5f, yOrigin = 0.5f, fontSize = textSize)
         }
 
@@ -143,16 +145,16 @@ class Node : SceneEntity()
 
         // Activation indicator border
         var size = 12f
-        surface.setDrawColor(borderColor)
+        surface.setDrawColor(borderColor, visibility)
         surface.drawTexture(Texture.BLANK, x - width * 0.5f, y, size, size, xOrigin = 0.5f, yOrigin = 0.5f, cornerRadius = size * 0.5f)
 
         // Activation indicator fill
         size -= borderSize * 0.6f
-        surface.setDrawColor(1f, 0.75f, 0f)
+        surface.setDrawColor(1f, 0.75f, 0f, visibility)
         surface.drawTexture(Texture.BLANK, x - width * 0.5f, y, size, size, xOrigin = 0.5f, yOrigin = 0.5f, cornerRadius = size * 0.5f)
 
         // Activation indicator text
-        surface.setDrawColor(borderColor)
+        surface.setDrawColor(borderColor, visibility)
         surface.drawText(activationFunction.name.take(1), x - width * 0.5f, y + size * 0.1f, xOrigin = 0.5f, yOrigin = 0.5f, fontSize = size)
     }
 

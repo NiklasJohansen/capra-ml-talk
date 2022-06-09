@@ -3,15 +3,15 @@ package presentation
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.graphics.Surface2D
-import no.njoh.pulseengine.core.scene.SceneEntity
 import no.njoh.pulseengine.core.shared.primitives.Color
 import tools.format
+import tools.setDrawColor
 
 /**
  * This entity is used to visualize data points over time.
  * All entities that implement the [Graphable] interface can provide data to this graph entity.
  */
-class Graph : SceneEntity()
+class Graph : PresentationEntity()
 {
     /** The ID of the entity to graph. */
     var entityIdToGraph = -1L
@@ -41,22 +41,22 @@ class Graph : SceneEntity()
     /**
      * Render the graph.
      */
-    override fun onRender(engine: PulseEngine, surface: Surface2D)
+    override fun onDrawToScreen(engine: PulseEngine, surface: Surface2D)
     {
         val xOrigin = x - width * 0.5f
         val yOrigin = y + height * 0.5f
 
         // Draw background rectangle
-        surface.setDrawColor(backgroundColor)
+        surface.setDrawColor(backgroundColor, visibility)
         surface.drawTexture(Texture.BLANK, x, y, width, height, xOrigin = 0.5f, yOrigin = 0.5f)
 
         // Draw Y-axis
-        surface.setDrawColor(axisColor)
+        surface.setDrawColor(axisColor, visibility)
         surface.drawTexture(Texture.BLANK, xOrigin - axisThickness * 0.5f, yOrigin, axisThickness, -height)
         for (i in 0 until yAxisTickCount + 1)
         {
             val yPos = yOrigin - (i.toFloat() / yAxisTickCount) * height - tickThickness * 0.5f
-            surface.setDrawColor(axisColor)
+            surface.setDrawColor(axisColor, visibility)
             surface.drawTexture(
                 texture = Texture.BLANK,
                 x = xOrigin - tickLength * 0.5f - axisThickness * 0.5f,
@@ -66,17 +66,17 @@ class Graph : SceneEntity()
             )
 
             val text = getTickText((i.toFloat() / yAxisTickCount) * yMaxValue, isXAxis = false)
-            surface.setDrawColor(tickTextColor)
+            surface.setDrawColor(tickTextColor, visibility)
             surface.drawText(text, xOrigin - tickTextSize * 0.6f, yPos, xOrigin = 1f, yOrigin = 0.5f, fontSize = tickTextSize)
         }
 
         // Draw X-axis
-        surface.setDrawColor(axisColor)
+        surface.setDrawColor(axisColor, visibility)
         surface.drawTexture(Texture.BLANK, xOrigin, yOrigin - axisThickness * 0.5f, width, axisThickness)
         for (i in 0 until xAxisTickCount + 1)
         {
             val xPos = xOrigin + (i.toFloat() / xAxisTickCount) * width - tickThickness * 0.5f
-            surface.setDrawColor(axisColor)
+            surface.setDrawColor(axisColor, visibility)
             surface.drawTexture(
                 texture = Texture.BLANK,
                 x = xPos,
@@ -86,7 +86,7 @@ class Graph : SceneEntity()
             )
 
             val text = getTickText((i.toFloat() / xAxisTickCount) * xMaxValue, isXAxis = true)
-            surface.setDrawColor(tickTextColor)
+            surface.setDrawColor(tickTextColor, visibility)
             surface.drawText(text, xPos, yOrigin + tickTextSize, xOrigin = 0.5f, yOrigin = 0.5f, fontSize = tickTextSize)
         }
 
@@ -95,7 +95,7 @@ class Graph : SceneEntity()
             return // No values to graph
 
         // Draw Graph line
-        surface.setDrawColor(lineColor)
+        surface.setDrawColor(lineColor, visibility)
         for (i in 1 until values.size)
         {
             val x0 = xOrigin + width * (values[i - 1].first.toFloat() / xMaxValue)
@@ -110,7 +110,7 @@ class Graph : SceneEntity()
         val x0 = xOrigin + width * (lastValue.first.toFloat() / xMaxValue) + 5
         val y0 = yOrigin - height * (lastValue.second.toFloat() / yMaxValue) - 5
         val text = lastValue.second.toString()
-        surface.setDrawColor(valueTextColor)
+        surface.setDrawColor(valueTextColor, visibility)
         surface.drawText(text, x0, y0, xOrigin = 0f, yOrigin = 0.5f, fontSize = valueTextSize)
 
         // Update max values if last value is outside of graph range
