@@ -6,6 +6,7 @@ import no.njoh.pulseengine.core.input.CursorType
 import no.njoh.pulseengine.core.input.Mouse
 import no.njoh.pulseengine.core.scene.SceneManager
 import no.njoh.pulseengine.core.shared.primitives.Color
+import presentation.Animator
 import java.util.*
 import kotlin.math.max
 
@@ -74,4 +75,12 @@ inline fun <reified T> SceneManager.forEachEntityImplementing(action: (T) -> Uni
         if (list[0] is T)
             list.forEachFast { action(it as T) }
     }
+}
+
+/**
+ * Public function to use the [Animator] system to animate values directly from the [SceneManager].
+ */
+fun PulseEngine.animate(from: Float, to: Float, overTimeMs: Long? = null, setTarget: (value: Float) -> Unit)
+{
+    scene.getSystemOfType<Animator>()?.addAnimationTarget(from, to, overTimeMs, setTarget) ?: setTarget(to)
 }

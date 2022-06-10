@@ -1,12 +1,9 @@
 package data
 
-import no.njoh.pulseengine.core.PulseEngine
-import presentation.EventListener
-
 /**
  * Provides functions to get data samples from a dataset.
  */
-interface Dataset : DataSource, EventListener
+interface Dataset : DataSource
 {
     /** The index of the selected sample. */
     val selectedSampleIndex: Int
@@ -25,14 +22,4 @@ interface Dataset : DataSource, EventListener
 
     /** Sets the previous sample as the selected one. */
     fun selectPreviousSample()
-
-    /** Enables events to change selected samples. */
-    override fun handleEvent(engine: PulseEngine, eventMessage: String)
-    {
-        when (eventMessage)
-        {
-            "NEXT" -> selectNextSample()
-            "PREVIOUS" -> selectPreviousSample()
-        }
-    }
 }

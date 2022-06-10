@@ -54,6 +54,8 @@ class Trainer : PresentationEntity(), Graphable<Int, Float>, EventListener
 
     override fun onStart(engine: PulseEngine)
     {
+        super.onStart(engine)
+
         networkLayers = buildLocalCachedNetwork(engine)
         lastTrainingIterationTime = System.currentTimeMillis().toDouble()
         accumulatedTime = 0.0
@@ -256,9 +258,9 @@ class Trainer : PresentationEntity(), Graphable<Int, Float>, EventListener
     }
 
     /**
-     * Handles incoming events.
+     * Handles incoming events messages.
      */
-    override fun handleEvent(engine: PulseEngine, eventMessage: String)
+    override fun onEventMessage(engine: PulseEngine, eventMessage: String)
     {
         when (eventMessage)
         {

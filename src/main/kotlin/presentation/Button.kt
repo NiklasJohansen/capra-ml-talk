@@ -153,7 +153,7 @@ class Button : PresentationEntity()
     private fun isRelevantSlideIndex(engine: PulseEngine): Boolean
     {
         val slideIndex = engine.scene.getSystemOfType<PresentationSystem>()?.slideIndex ?: return true
-        return slideIndex == triggerKeySlideIndex
+        return slideIndex == triggerKeySlideIndex || triggerKeySlideIndex < 0
     }
 
     /**

@@ -51,6 +51,8 @@ class Node : PresentationEntity()
 
     override fun onStart(engine: PulseEngine)
     {
+        super.onStart(engine)
+
         // Create a local array of the IDs to all incoming connection (for faster lookup while computing outputValue)
         incomingConnectionIds = engine.scene.getAllEntitiesOfType<Connection>()
             ?.mapNotNull { con -> if (con.toNodeId == this.id) con.id else null }

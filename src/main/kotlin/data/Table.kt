@@ -163,4 +163,14 @@ class Table : PresentationEntity(), Dataset
     {
         selectedSampleIndex = if (selectedSampleIndex - 1 < 0) getSampleCount() - 1 else selectedSampleIndex - 1
     }
+
+    /** Enables events to change selected samples. */
+    override fun onEventMessage(engine: PulseEngine, eventMessage: String)
+    {
+        when (eventMessage)
+        {
+            "NEXT" -> selectNextSample()
+            "PREVIOUS" -> selectPreviousSample()
+        }
+    }
 }
