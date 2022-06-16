@@ -7,7 +7,6 @@ import no.njoh.pulseengine.core.graphics.Surface2D
 import no.njoh.pulseengine.core.input.CursorType
 import no.njoh.pulseengine.core.input.Key
 import no.njoh.pulseengine.core.input.Mouse
-import no.njoh.pulseengine.core.scene.SceneEntity
 import no.njoh.pulseengine.core.shared.primitives.Color
 import presentation.Button.ButtonState.*
 import presentation.Button.SwitchType.MOMENTARY
@@ -62,7 +61,7 @@ class Button : PresentationEntity()
         val yTop = y - height * 0.5f
         val isMouseInsideButton = (xm > xLeft && xm < xLeft + width && ym > yTop && ym < yTop + height)
         val isMousePressed = engine.input.isPressed(Mouse.LEFT)
-        val isMouseClicked = engine.input.wasClicked(Mouse.LEFT)
+        val wasMouseClicked = engine.input.wasClicked(Mouse.LEFT)
         val checkKey = (triggerOnKeyPress && isRelevantSlideIndex(engine))
 
         // Update cursor
@@ -85,7 +84,7 @@ class Button : PresentationEntity()
             }
             TOGGLE ->
             {
-                if ((checkKey && engine.input.wasClicked(triggerKey)) || (isMouseInsideButton && isMouseClicked))
+                if ((checkKey && engine.input.wasClicked(triggerKey)) || (isMouseInsideButton && wasMouseClicked))
                 {
                     if (state == PRESSED) HOVER else PRESSED
                 }

@@ -7,8 +7,7 @@ import no.njoh.pulseengine.core.scene.SceneEntity
 import tools.animate
 
 /**
- * Subclass of [SceneEntity].
- * Enables entities to be revealed at different stages of a presentation by the [PresentationSystem].
+ * Subclass of [SceneEntity] that provides functionality to change the entity visibility via event messages.
  */
 abstract class PresentationEntity : SceneEntity(), EventListener
 {
@@ -39,8 +38,8 @@ abstract class PresentationEntity : SceneEntity(), EventListener
     {
         when (eventMessage)
         {
-            "SHOW" -> engine.animate(from = visibility, to = 1f) { visibility = it }
-            "HIDE" -> engine.animate(from = visibility, to = 0f) { visibility = it }
+            "SHOW" -> engine.animate(::visibility, target = 1f)
+            "HIDE" -> engine.animate(::visibility, target = 0f)
             else -> onEventMessage(engine, eventMessage)
         }
     }

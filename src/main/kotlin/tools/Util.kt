@@ -7,8 +7,10 @@ import no.njoh.pulseengine.core.input.Mouse
 import no.njoh.pulseengine.core.scene.SceneManager
 import no.njoh.pulseengine.core.shared.primitives.Color
 import presentation.Animator
+import presentation.Animator.EasingFunction
 import java.util.*
 import kotlin.math.max
+import kotlin.reflect.KMutableProperty
 
 /**
  * Returns a formatted string representation of a [Float] value.
@@ -78,9 +80,15 @@ inline fun <reified T> SceneManager.forEachEntityImplementing(action: (T) -> Uni
 }
 
 /**
- * Public function to use the [Animator] system to animate values directly from the [SceneManager].
+ * Global function for using the [Animator] system to animate properties.
+ * @param property a mutable property to be animated
+ * @param target the target value the animation will end on
+ * @param durationMs the duration of the animation in milliseconds
+ * @param easingFunc the function to use when animating the property to the target value
  */
-fun PulseEngine.animate(from: Float, to: Float, overTimeMs: Long? = null, setTarget: (value: Float) -> Unit)
+fun PulseEngine.animate(property: KMutableProperty<Float>, target: Float, durationMs: Long? = null, easingFunc: EasingFunction? = null)
 {
-    scene.getSystemOfType<Animator>()?.addAnimationTarget(from, to, overTimeMs, setTarget) ?: setTarget(to)
+    scene.getSystemOfType<Animator>()
+        ?.addAnimation(property, target, durationMs, easingFunc)
+        ?: property.setter.call(target)
 }

@@ -6,6 +6,7 @@ import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.graphics.Surface2D
 import no.njoh.pulseengine.core.scene.SceneEntity
 import no.njoh.pulseengine.core.scene.SceneState
+import no.njoh.pulseengine.core.shared.primitives.Color
 
 /**
  * Responsible for dispatching event messages when the presentation transition from and to a certain slide index.
@@ -15,6 +16,9 @@ class SlideTrigger : SceneEntity()
 {
     /** The name of this trigger. Only visible in editor. */
     var name = "Slide Trigger"
+
+    /** The background color of the entity visible in editor. */
+    var color = Color(0.9f,0.8f, 0.8f)
 
     /** The target slide index that should trigger an event dispatch. */
     var targetSlideIndex = 0
@@ -74,7 +78,7 @@ class SlideTrigger : SceneEntity()
 
         surface.setDrawColor(0.1f,0.1f, 0.1f)
         surface.drawTexture(Texture.BLANK, x, y, width + 2, height + 2, xOrigin = 0.5f, yOrigin = 0.5f, cornerRadius = 5f)
-        surface.setDrawColor(0.9f,0.8f, 0.8f)
+        surface.setDrawColor(color)
         surface.drawTexture(Texture.BLANK, x, y, width, height, xOrigin = 0.5f, yOrigin = 0.5f, cornerRadius = 5f)
         surface.setDrawColor(0f,0f, 0f)
         surface.drawText("($targetSlideIndex) $name", x, y - 20f, xOrigin = 0.5f, yOrigin = 0.5f, fontSize = 15f)
