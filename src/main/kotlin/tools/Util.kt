@@ -4,6 +4,7 @@ import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.graphics.Surface2D
 import no.njoh.pulseengine.core.input.CursorType
 import no.njoh.pulseengine.core.input.Mouse
+import no.njoh.pulseengine.core.scene.SceneEntity
 import no.njoh.pulseengine.core.scene.SceneManager
 import no.njoh.pulseengine.core.shared.primitives.Color
 import presentation.Animator
@@ -80,6 +81,12 @@ inline fun <reified T> SceneManager.forEachEntityImplementing(action: (T) -> Uni
 }
 
 /**
+ * Util function to get the first [SceneEntity] of type [T] satisfying the given [predicate].
+ */
+inline fun <reified T: SceneEntity> SceneManager.getFirstEntityOfType(predicate: (T) -> Boolean): T? =
+    getAllEntitiesOfType<T>()?.firstOrNull(predicate)
+
+/**
  * Global function for using the [Animator] system to animate properties.
  * @param property a mutable property to be animated
  * @param target the target value the animation will end on
@@ -92,3 +99,21 @@ fun PulseEngine.animate(property: KMutableProperty<Float>, target: Float, durati
         ?.addAnimation(property, target, durationMs, easingFunc)
         ?: property.setter.call(target)
 }
+
+/**
+ * Maps a [List] to an [Array].
+ */
+inline fun <reified T, reified R> List<T>.mapToArray(transform: (T) -> R): Array<R> =
+    Array(this.size) { i -> transform(this[i]) }
+
+/**
+ * Maps a [List] to a [LongArray].
+ */
+inline fun <reified T> List<T>.mapToLongArray(transform: (T) -> Long): LongArray =
+    LongArray(this.size) { i -> transform(this[i]) }
+
+/**
+ * Maps a [List] to a [FloatArray].
+ */
+inline fun <reified T> List<T>.mapToFloatArray(transform: (T) -> Float): FloatArray =
+    FloatArray(this.size) { i -> transform(this[i]) }

@@ -60,9 +60,13 @@ class NetworkGenerator : SceneSystem()
         when
         {
             engine.scene.state != SceneState.STOPPED -> return // Only use tools in editor, not while scene is running
-            engine.input.wasClicked(Key.G) -> generateNetwork(engine)
             engine.input.isPressed(Mouse.RIGHT) -> beginNodeConnection(engine)
             engine.input.wasReleased(Mouse.RIGHT) -> finishNodeConnection(engine)
+            engine.input.wasClicked(Key.G) -> generateNetwork(
+                engine = engine,
+                xPos = engine.input.xWorldMouse,
+                yPos = engine.input.yWorldMouse
+            )
         }
     }
 
@@ -73,89 +77,114 @@ class NetworkGenerator : SceneSystem()
     }
 
     /**
-     * Generates a network of [Node]s and [Connection]s from the parameters.
+     * Generates a network of [Node]s and [Connection]s from the set parameters.
      */
-    private fun generateNetwork(engine: PulseEngine)
+    fun generateNetwork(engine: PulseEngine, xPos: Float, yPos: Float): Network
     {
+        val layers = mutableListOf<List<Node>>()
+        val connections = mutableListOf<Connection>()
+        val dataSource = engine.scene.getEntityOfType<DataSource>(dataSourceId)
         val layerDefinitions = networkTemplate
             .split(",")
             .map { it.split("+").mapNotNull { it.toIntOrNull() } }
 
-        val xm = engine.input.xWorldMouse
-        val ym = engine.input.yWorldMouse
-        val dataSource = engine.scene.getEntityOfType<DataSource>(dataSourceId)
-        var lastLayerNodes = mutableListOf<Node>()
-
+        // Create layers in network
         for ((layerIndex, layerDef) in layerDefinitions.withIndex())
         {
+            val currentLayer = mutableListOf<Node>()
             val baseNodeCount = layerDef.getOrNull(0) ?: 0
             val biasNodeCount = layerDef.getOrNull(1) ?: 0
             val totalLayerNodeCount = baseNodeCount + biasNodeCount
-            val yStart = ym - 0.5f * (totalLayerNodeCount * (nodeSize + nodeSpacing))
-            val thisLayerNodes = mutableListOf<Node>()
+            val xNode = xPos + layerIndex * (nodeSize + layerSpacing)
+            val yNode = yPos - 0.5f * (totalLayerNodeCount * (nodeSize + nodeSpacing))
+            val isFirstLayer = (layerIndex == 0)
+            val isLastLayer = (layerIndex == layerDefinitions.lastIndex)
 
+            // Create nodes in layer
             for (nodeIndex in 0 until totalLayerNodeCount)
             {
                 val isBiasNode = (nodeIndex >= baseNodeCount)
-                val newNode = Node().apply()
+                val newNode = createNewNode()
+                newNode.x = xNode
+                newNode.y = yNode + nodeIndex * (nodeSize + nodeSpacing)
+                newNode.outputValue = if (isBiasNode) 1.0f else 0.5f
+                newNode.activationFunction = when
                 {
-                    x = xm + layerIndex * (nodeSize + layerSpacing)
-                    y = yStart + nodeIndex * (nodeSize + nodeSpacing)
-                    width = nodeSize
-                    height = nodeSize
-                    textSize = nodeTextSize
-                    showText = nodeTextVisible
-                    editable = nodeTextVisible
-                    showActivationFunction = nodeActivationFunctionVisible
-                    outputValue = if (isBiasNode) 1.0f else 0.5f
-                    activationFunction = when
-                    {
-                        layerIndex == 0 || isBiasNode -> ActivationFunction.NONE
-                        layerIndex == layerDefinitions.lastIndex -> outputLayerFunction
-                        else -> hiddenLayerFunction
-                    }
+                    isFirstLayer || isBiasNode -> ActivationFunction.NONE
+                    isLastLayer -> outputLayerFunction
+                    else -> hiddenLayerFunction
                 }
 
-                // Add new node to scene
+                // Add node to scene to give it an ID
                 engine.scene.addEntity(newNode)
-                thisLayerNodes.add(newNode)
 
-                if (!isBiasNode)
+                // Create connections from all nodes in previous layer to the newNode
+                if (!isBiasNode && layers.isNotEmpty())
+                    newNode.connectToPreviousLayer(engine, layers.last(), connections, totalLayerNodeCount)
+
+                // Set attributes related to data source
+                if (!isBiasNode && dataSource != null)
                 {
-                    // Set attributes related to data source
-                    if (dataSource != null)
-                    {
-                        newNode.dataSourceId = dataSourceId
-                        val attributeCount = dataSource.getAttributeCount()
-                        when (layerIndex)
-                        {
-                            0 -> newNode.attributeValueIndex = nodeIndex
-                            layerDefinitions.lastIndex -> newNode.targetValueIndex = attributeCount - (totalLayerNodeCount - nodeIndex)
-                        }
-                    }
-
-                    // Create connections from newNode to all nodes in previous layerDef
-                    for (lastNode in lastLayerNodes)
-                    {
-                        engine.scene.addEntity(createNewConnection().apply()
-                        {
-                            x = (lastNode.x + newNode.x) * 0.5f
-                            y = (lastNode.y + newNode.y) * 0.5f
-                            showText = connectionTextVisible
-                            editable = connectionTextVisible
-                            fromNodeId = lastNode.id
-                            toNodeId = newNode.id
-                            weight = getConnectionWeight(
-                                lastLayerSize = lastLayerNodes.size,
-                                thisLayerSize = totalLayerNodeCount
-                            )
-                        })
-                    }
+                    newNode.dataSourceId = dataSourceId
+                    if (isFirstLayer)
+                        newNode.attributeValueIndex = nodeIndex
+                    else if (isLastLayer)
+                        newNode.targetValueIndex = dataSource.getAttributeCount() - (totalLayerNodeCount - nodeIndex)
+                    else
+                        newNode.dataSourceId = -1
                 }
+
+                // Call onStart on node of scene is already started
+                if (engine.scene.state == SceneState.RUNNING)
+                    newNode.onStart(engine)
+
+                currentLayer.add(newNode)
             }
 
-            lastLayerNodes = thisLayerNodes
+            layers.add(currentLayer)
         }
+
+        return Network(
+            nodeIds = layers.mapToArray { layer -> layer.mapToLongArray { node -> node.id } },
+            connectionIds = connections.mapToLongArray { it.id }
+        )
+    }
+
+    /**
+     * Creates [Connection]s between this [Node] and the [Node]s in the previous layer.
+     */
+    private fun Node.connectToPreviousLayer(
+        engine: PulseEngine,
+        prevLayerNodes: List<Node>,
+        connections: MutableList<Connection>,
+        thisLayerSize: Int
+    ) {
+        for (prevNode in prevLayerNodes)
+        {
+            val c = createNewConnection()
+            c.x = (prevNode.x + this.x) * 0.5f
+            c.y = (prevNode.y + this.y) * 0.5f
+            c.showText = connectionTextVisible
+            c.editable = connectionTextVisible
+            c.fromNodeId = prevNode.id
+            c.toNodeId = this.id
+            c.weight = getConnectionWeight(
+                lastLayerSize = prevLayerNodes.size,
+                thisLayerSize = thisLayerSize
+            )
+            engine.scene.addEntity(c)
+            connections.add(c)
+        }
+    }
+
+    /**
+     * Returns a randomized weight using Xavier initialization.
+     */
+    private fun getConnectionWeight(lastLayerSize: Int, thisLayerSize: Int): Float
+    {
+        val variance = 2.0 / (lastLayerSize + thisLayerSize)
+        val standardDeviation = sqrt(variance).toFloat()
+        return nextRandomGaussian() * standardDeviation
     }
 
     /**
@@ -199,24 +228,27 @@ class NetworkGenerator : SceneSystem()
     }
 
     /**
-     * Returns a randomized weight using Xavier initialization.
-     */
-    private fun getConnectionWeight(lastLayerSize: Int, thisLayerSize: Int): Float
-    {
-        val variance = 2.0 / (lastLayerSize + thisLayerSize)
-        val standardDeviation = sqrt(variance).toFloat()
-        return nextRandomGaussian() * standardDeviation
-    }
-
-    /**
      * Creates a new [Connection] with initial size, depth and weight values.
      */
     private fun createNewConnection() = Connection().apply()
     {
-        weight = 1f
+        z = 2f
         width = 20f
         height = 6f
-        z = 2f
+        weight = 1f
         fromNodeId = NOT_SET
+    }
+
+    /**
+     * Creates a new [Node] with some default values set.
+     */
+    private fun createNewNode() = Node().apply()
+    {
+        width = nodeSize
+        height = nodeSize
+        textSize = nodeTextSize
+        showText = nodeTextVisible
+        editable = nodeTextVisible
+        showActivationFunction = nodeActivationFunctionVisible
     }
 }
