@@ -1,3 +1,4 @@
+import demos.driving.Car
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.PulseEngineGame
 import no.njoh.pulseengine.core.input.CursorType
@@ -13,6 +14,7 @@ class PresentationMain : PulseEngineGame()
     {
         engine.window.title = "Neural Network Presentation"
         engine.widget.add(CommandLine(), Profiler(), SceneEditor())
+        engine.data.saveDirectory = "D:\\Users\\Niklas\\OneDrive\\Documents\\Projects\\neural-network-presentation\\src\\main\\resources"
 
         // Load initial assets
         engine.asset.loadTexture("/assets/play.png", "play")
@@ -20,12 +22,15 @@ class PresentationMain : PulseEngineGame()
         engine.asset.loadTexture("/assets/next.png", "next")
         engine.asset.loadTexture("/assets/reset.png", "reset")
         engine.asset.loadTexture("/assets/fast_forward.png", "fast_forward")
+        engine.asset.loadTexture("/assets/car.png", "car")
 
         // Load first scene either from save directory or from classpath
-        val startSceneFileName = "scenes/nnp-0.scn"
+        val startSceneFileName = "scenes/ga_cars_training.scn" // scenes/ga_cars.scn" // "scenes/nnp-0.scn"
         val isSceneFileInSaveDirectory = engine.data.exists(startSceneFileName)
         engine.scene.loadAndSetActive(startSceneFileName, fromClassPath = !isSceneFileInSaveDirectory)
         engine.scene.start()
+
+        engine.data.addMetric("Cars", "") { engine.scene.getAllEntitiesOfType<Car>()?.size?.toFloat() ?: 0f }
     }
 
     override fun onUpdate()
