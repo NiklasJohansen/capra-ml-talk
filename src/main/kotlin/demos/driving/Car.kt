@@ -71,7 +71,7 @@ class Car : PresentationEntity(), PolygonBody, DataSource
     var xTextureScale = 1f
     var yTextureScale = 1f
     var sensorVisibility = 1f
-    var hihglighted = false
+    var highlighted = false
 
     // Physics object properties
     @JsonIgnore
@@ -195,7 +195,7 @@ class Car : PresentationEntity(), PolygonBody, DataSource
         val w = width * xTextureScale
         val h = height * yTextureScale
         val texture = engine.asset.getOrNull(textureName) ?: Texture.BLANK
-        val alpha = visibility * (if (crashed && !hihglighted) 0.5f else 1f)
+        val alpha = visibility * (if (crashed && !highlighted) 0.5f else 1f)
 
         surface.setDrawColor(color, alpha)
         surface.drawTexture(texture, x, y, w, h, rotation, xOrigin = 0.5f, yOrigin = 0.5f)

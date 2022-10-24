@@ -9,8 +9,10 @@ import no.njoh.pulseengine.core.shared.primitives.Color
 import presentation.PresentationEntity
 import tools.format
 import tools.mapToFloatArray
+import tools.nextColor
 import kotlin.math.abs
 import kotlin.math.min
+import kotlin.random.Random
 import kotlin.random.Random.Default.nextFloat
 
 /**
@@ -126,19 +128,30 @@ class GeneticAlgorithm : PresentationEntity()
         if (fatherGenes.size != motherGenes.size)
             return emptyList() // Requires both parents to have the same amount of genes
 
+        // Determine two cut points
         val totalGenes = fatherGenes.size
         val cutLength = (totalGenes * (cutLengthPercentage / 100f)).toInt()
         val cutPoint0 = (nextFloat() * (totalGenes - cutLength)).toInt()
         val cutPoint1 = cutPoint0 + cutLength
 
-        // TODO: Swap mutation
+        // Select genes from father in between cut points, else from mother
+        val childGenes = mutableListOf<Gene>()
+        for (i in 0 until totalGenes)
+            childGenes.add(if (i > cutPoint0 && i < cutPoint1) fatherGenes[i] else motherGenes[i])
 
-        return (0 until totalGenes).map { i -> if (i > cutPoint0 && i < cutPoint1) fatherGenes[i] else motherGenes[i] }
+        // Mutate gene sequence by swapping to random genes
+        val geneIndex0 = Random.nextInt(childGenes.size)
+        val geneIndex1 = Random.nextInt(childGenes.size)
+        val gene = childGenes[geneIndex0]
+        childGenes[geneIndex0] = childGenes[geneIndex1]
+        childGenes[geneIndex1] = gene
+
+        return childGenes
     }
 
-    override fun handleEvent(engine: PulseEngine, eventMessage: String)
+    override fun handleEvent(engine: PulseEngine, eventMsg: String)
     {
-        when (eventMessage)
+        when (eventMsg)
         {
             "RESET" -> childGenes = emptyList()
             "GENERATE" -> childGenes = createChildGenes(fatherGenes, motherGenes)
@@ -147,10 +160,15 @@ class GeneticAlgorithm : PresentationEntity()
                 if (childGenes.isNotEmpty())
                 {
                     val carPool = engine.scene.getEntityOfType<CarPool>(carPoolId) ?: return
-                    val color = childGenes.random().color
+                    val color = childGenes.random().color // TODO: Color generated from weights!
                     val networkWeights = childGenes.mapToFloatArray { it.value }
                     carPool.addNextGenerationCar(engine, color, networkWeights)
                 }
+            }
+            "SUBMIT_RANDOM" ->
+            {
+                val carPool = engine.scene.getEntityOfType<CarPool>(carPoolId) ?: return
+                carPool.addNextGenerationCar(engine, Random.nextColor(), null)
             }
         }
     }

@@ -11,7 +11,8 @@ import no.njoh.pulseengine.core.scene.SceneState
 import no.njoh.pulseengine.core.shared.primitives.Color
 import presentation.EventListener
 import tools.NetworkGenerator
-import kotlin.random.Random.Default.nextFloat
+import tools.nextColor
+import kotlin.random.Random
 
 /**
  * Responsible for creating and keeping track of current and next generation cars.
@@ -34,25 +35,31 @@ class CarPool : SceneEntity(), EventListener
     @JsonIgnore var nextGenerationCarIds = mutableListOf<Long>()
     @JsonIgnore var currentGenerationCarIds = mutableListOf<Long>()
 
-    fun addNextGenerationCar(engine: PulseEngine, color: Color, weights: FloatArray?)
+    fun addNextGenerationCar(engine: PulseEngine, carColor: Color, weights: FloatArray?)
     {
-        // Creat new car from template
+        // Get template car and start checkpoint from scene
         val templateCar = engine.scene.getEntityOfType<Car>(templateCarId) ?: return
         val startCheckPoint = engine.scene.getEntityOfType<Checkpoint>(startCheckpointId) ?: return
-        val car = templateCar.copy()
-        car.drivingMode = DrivingMode.AUTO
-        car.generation = currentGeneration
-        car.x = startCheckPoint.x
-        car.y = startCheckPoint.y
-        car.rotation = spawnAngleDegrees
-        car.color = color.copy()
-        car.visibility = 1f
-        car.drivingMode = DrivingMode.MANUAL
+
+        // Creat new car from template
+        val car = templateCar.copy().apply()
+        {
+            generation = currentGeneration
+            x = startCheckPoint.x
+            y = startCheckPoint.y
+            rotation = spawnAngleDegrees
+            color = carColor.copy()
+            visibility = 1f
+            drivingMode = DrivingMode.MANUAL
+            init(engine)
+        }
+
+        // Adding the car to the scene gives it an ID
         engine.scene.addEntity(car)
-        car.init(engine)
 
         // Configure network generator
-        val generator = NetworkGenerator().apply {
+        val generator = NetworkGenerator().apply()
+        {
             networkTemplate = "${templateCar.sensorCount},5,2"
             outputLayerFunction = ActivationFunction.TANH
             nodeSize = 20f
@@ -63,17 +70,19 @@ class CarPool : SceneEntity(), EventListener
             dataSourceId = car.id
         }
 
-        // Generate new network for car
+        // Generate new network for the car
         car.network = generator.generateNetwork(engine, 950f, 450f)
+
+        // Apply given weights to the network
         weights?.let { car.network.setWeights(engine, it) }
 
         // Add ID of car to next generation
         nextGenerationCarIds.add(car.id)
     }
 
-    override fun handleEvent(engine: PulseEngine, eventMessage: String)
+    override fun handleEvent(engine: PulseEngine, eventMsg: String)
     {
-        when (eventMessage)
+        when (eventMsg)
         {
             "START_NEXT_GEN" ->
             {
@@ -112,15 +121,7 @@ class CarPool : SceneEntity(), EventListener
     private fun createRandomGeneration(engine: PulseEngine)
     {
         for (i in 0 until spawnCount)
-        {
-            val hue = nextFloat()
-            val saturation = 0.7f + 0.3f * nextFloat()
-            val luminance = 0.9f
-            val c = java.awt.Color.getHSBColor(hue, saturation, luminance)
-            val color = Color(c.red / 255f, c.green / 255f, c.blue / 255f)
-
-            addNextGenerationCar(engine, color = color, weights = null)
-        }
+            addNextGenerationCar(engine, carColor = Random.nextColor(), weights = null)
     }
 
     override fun onRender(engine: PulseEngine, surface: Surface2D)

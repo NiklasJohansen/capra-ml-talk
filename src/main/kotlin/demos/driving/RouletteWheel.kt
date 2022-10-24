@@ -39,14 +39,18 @@ class RouletteWheel : PresentationEntity()
     @JsonIgnore private var wheelAngle = 1f
     @JsonIgnore var selectedId0 = -1L
     @JsonIgnore var selectedId1 = -1L
+    @JsonIgnore var isSpinning = false
 
     override fun onFixedUpdate(engine: PulseEngine)
     {
         // Update the angle and velocity of the wheel
         wheelAngle += angularVelocity / 360
         angularVelocity *= 1f - wheelFriction
-        if (angularVelocity < 0.001f)
+        if (angularVelocity < 0.1f)
+        {
             angularVelocity = 0f
+            isSpinning = false
+        }
     }
 
     override fun onDrawToScreen(engine: PulseEngine, surface: Surface2D)
@@ -66,15 +70,15 @@ class RouletteWheel : PresentationEntity()
         // Find current cars and calculate total fitness sum
         val carPool = engine.scene.getEntityOfType<CarPool>(carPoolId) ?: return
         val fitnessSum = carPool.currentGenerationCarIds
-            .sumByFloat { id -> engine.scene.getEntityOfType<Car>(id)?.fitness ?: 0f }
+            .sumByFloat { id -> 3f * (engine.scene.getEntityOfType<Car>(id)?.fitness ?: 0f) } // TODO: Make variable for 3f factor
 
         var currentAngle = 0f
         for (carId in carPool.currentGenerationCarIds)
         {
             val car = engine.scene.getEntityOfType<Car>(carId) ?: continue
-            car.hihglighted = false
+            car.highlighted = false
             if (car.fitness == 0f) continue // Ignore cars without score
-            val fraction = car.fitness / fitnessSum
+            val fraction = (3f * car.fitness) / fitnessSum  // TODO: Make variable for 3f factor
             val segmentAngle = fraction * PI.toFloat() * 2f
 
             // Check to see if the fixed points is within the current segment
@@ -124,8 +128,8 @@ class RouletteWheel : PresentationEntity()
         selectedId1 = selectedCar1?.id ?: -1L
 
         // Make selected cars highlighted
-        selectedCar0?.hihglighted = true
-        selectedCar1?.hihglighted = true
+        selectedCar0?.highlighted = true
+        selectedCar1?.highlighted = true
     }
 
     private fun Surface2D.drawTriangle(x0: Float, y0: Float, x1: Float, y1: Float, x2: Float, y2: Float)
@@ -140,7 +144,17 @@ class RouletteWheel : PresentationEntity()
     {
         when (eventMessage)
         {
-            "SPIN" -> angularVelocity += spinAcceleration * (0.5f + 0.5f * Random.nextFloat())
+            "SPIN" ->
+            {
+                angularVelocity += spinAcceleration * (0.5f + 0.5f * Random.nextFloat())
+                isSpinning = true
+            }
+            "SPIN_INSTANT_STOP" ->
+            {
+                wheelAngle += (spinAcceleration * (0.5f + 0.5f * Random.nextFloat())) / 360
+                angularVelocity = 0f
+                isSpinning = false
+            }
         }
     }
 }
