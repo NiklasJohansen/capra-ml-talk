@@ -27,12 +27,23 @@ class NetworkEditor : SceneSystem()
     /** The spacing between nodes when aligned. */
     var nodeSpacing = 5f
 
+    /** The size of the [Node]. */
+    var nodeSize = 16f
+
+    /** The size of the visual node border. */
+    var borderSize = 5f
+
+    /** The thickness of the line between to [Node]s. */
+    var connectionThickness = 5f
+
     override fun onUpdate(engine: PulseEngine)
     {
         if (engine.scene.state != STOPPED)
             return // Only use tools in editor, not while scene is running
 
         handleNodeAlignment(engine)
+        setNodeProperties(engine)
+        setConnectionProperties(engine)
         handlePositionSnapping<Node>(engine)
         handlePositionSnapping<Connection>(engine)
         handlePositionSnapping<TextLabel>(engine)
@@ -66,14 +77,13 @@ class NetworkEditor : SceneSystem()
      */
     private fun handleNodeAlignment(engine: PulseEngine)
     {
-        if (!engine.input.wasClicked(Key.A))
+        if (!engine.input.wasClicked(Key.A) || !engine.input.isPressed(Key.LEFT_CONTROL))
             return // A was not pressed, return
 
         // Find selected Nodes
         val selectedNodes = mutableListOf<Node>()
         engine.scene.forEachEntityOfType<Node> { if (it.isSet(SELECTED)) selectedNodes.add(it) }
         selectedNodes.sortBy { if (it.dataSourceId < 0) 20000 else it.attributeValueIndex + it.targetValueIndex }
-
         if (selectedNodes.isEmpty())
             return
 
@@ -83,6 +93,36 @@ class NetworkEditor : SceneSystem()
         selectedNodes.forEachIndexed { i, node ->
             node.x = xStart + (i % nodesPerRow) * (node.width + nodeSpacing)
             node.y = yStart + (i / nodesPerRow) * (node.height + nodeSpacing)
+        }
+    }
+
+    private fun setNodeProperties(engine: PulseEngine)
+    {
+        if (!engine.input.wasClicked(Key.N) || !engine.input.isPressed(Key.LEFT_CONTROL))
+            return // N was not pressed, return
+
+        engine.scene.forEachEntityOfType<Node>()
+        {
+            if (it.isSet(SELECTED))
+            {
+                it.width = nodeSize
+                it.height = nodeSize
+                it.borderSize = borderSize
+            }
+        }
+    }
+
+    private fun setConnectionProperties(engine: PulseEngine)
+    {
+        if (!engine.input.wasClicked(Key.L) || !engine.input.isPressed(Key.LEFT_CONTROL))
+            return // L was not pressed, return
+
+        engine.scene.forEachEntityOfType<Connection>()
+        {
+            if (it.isSet(SELECTED))
+            {
+                it.lineThickness = connectionThickness
+            }
         }
     }
 }

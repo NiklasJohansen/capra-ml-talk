@@ -25,6 +25,9 @@ class NetworkGenerator : SceneSystem()
     /** Diameter of each node. */
     var nodeSize = 64f
 
+    /** The size of the circular node border. */
+    var nodeBorderSize = 10f
+
     /** Horizontal spacing between layers. */
     var layerSpacing = 100f
 
@@ -42,6 +45,9 @@ class NetworkGenerator : SceneSystem()
 
     /** Whether activation function marker on [Node] should be visible or not. */
     var nodeActivationFunctionVisible = true
+
+    /** The width of the connection lines between nodes. */
+    var connectionThickness = 10f
 
     /** Activation function to use in hidden layers. */
     var hiddenLayerFunction = ActivationFunction.TANH
@@ -236,6 +242,7 @@ class NetworkGenerator : SceneSystem()
         width = 20f
         height = 6f
         weight = 1f
+        lineThickness = connectionThickness
         fromNodeId = NOT_SET
     }
 
@@ -246,6 +253,7 @@ class NetworkGenerator : SceneSystem()
     {
         width = nodeSize
         height = nodeSize
+        borderSize = nodeBorderSize
         textSize = nodeTextSize
         showText = nodeTextVisible
         editable = nodeTextVisible
