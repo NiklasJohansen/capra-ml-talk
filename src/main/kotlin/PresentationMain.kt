@@ -1,4 +1,3 @@
-import demos.driving.Car
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.PulseEngineGame
 import no.njoh.pulseengine.core.input.CursorType
@@ -12,25 +11,22 @@ class PresentationMain : PulseEngineGame()
 {
     override fun onCreate()
     {
-        engine.window.title = "Neural Network Presentation"
+        engine.window.title = "Capra ML-presentation 03.11.2022"
         engine.widget.add(CommandLine(), Profiler(), SceneEditor())
+
+        // TODO: Remove
         engine.data.saveDirectory = "D:\\Users\\Niklas\\OneDrive\\Documents\\Projects\\neural-network-presentation\\src\\main\\resources"
 
         // Load initial assets
-        engine.asset.loadTexture("/assets/play.png", "play")
-        engine.asset.loadTexture("/assets/pause.png", "pause")
-        engine.asset.loadTexture("/assets/next.png", "next")
-        engine.asset.loadTexture("/assets/reset.png", "reset")
-        engine.asset.loadTexture("/assets/fast_forward.png", "fast_forward")
-        engine.asset.loadTexture("/assets/car.png", "car")
+        engine.asset.loadAllTextures("/assets")
+        engine.asset.loadFont("/assets/source-sans-pro.regular.ttf", "font_normal", fontSize = 100f)
+        engine.asset.loadFont("/assets/source-sans-pro.bold.ttf", "font_bold", fontSize = 100f)
 
         // Load first scene either from save directory or from classpath
-        val startSceneFileName = "scenes/ga_cars_training.scn" // scenes/ga_cars.scn" // "scenes/nnp-0.scn"
+        val startSceneFileName = "scenes/nnp-0.scn"
         val isSceneFileInSaveDirectory = engine.data.exists(startSceneFileName)
         engine.scene.loadAndSetActive(startSceneFileName, fromClassPath = !isSceneFileInSaveDirectory)
         engine.scene.start()
-
-        engine.data.addMetric("Cars", "") { engine.scene.getAllEntitiesOfType<Car>()?.size?.toFloat() ?: 0f }
     }
 
     override fun onUpdate()
