@@ -5,6 +5,8 @@ import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.graphics.Surface2D
 import no.njoh.pulseengine.core.scene.SceneEntity
 import tools.animate
+import tools.getEventValue
+import kotlin.math.max
 
 /**
  * Subclass of [SceneEntity] that provides functionality to change the entity visibility via event messages.
@@ -15,8 +17,7 @@ abstract class PresentationEntity : SceneEntity(), EventListener
     var initialVisibility = 1f
 
     /** The current visibility value to render the entity with 0.0 = not visible, 1.0 = fully visible. */
-    @JsonIgnore
-    var visibility = 1f
+    @JsonIgnore var visibility = 1f
 
     override fun onStart(engine: PulseEngine)
     {
@@ -25,22 +26,32 @@ abstract class PresentationEntity : SceneEntity(), EventListener
 
     override fun onRender(engine: PulseEngine, surface: Surface2D)
     {
-        if (visibility <= 0f)
+        if (visibility <= 0f || !isOnScreen(surface))
             return // Invisible, don't draw to screen
 
         onDrawToScreen(engine, surface)
     }
 
-    /**
-     * Handles visibility related events or forwards event down to concrete implementation.
-     */
-    override fun handleEvent(engine: PulseEngine, eventMessage: String)
+    private fun isOnScreen(surface: Surface2D): Boolean
     {
-        when (eventMessage)
+        val topLeft = surface.camera.topLeftWorldPosition
+        val bottomRight = surface.camera.bottomRightWorldPosition
+        val size = max(width, height) * 0.5f
+        return x + size > topLeft.x && x - size < bottomRight.x && y + size > topLeft.y && y - size < bottomRight.y
+    }
+
+    /**
+     * Handles visibility and depth related events or forwards event down to concrete implementation.
+     */
+    override fun handleEvent(engine: PulseEngine, eventMsg: String)
+    {
+        when
         {
-            "SHOW" -> engine.animate(::visibility, target = 1f)
-            "HIDE" -> engine.animate(::visibility, target = 0f)
-            else -> onEventMessage(engine, eventMessage)
+            eventMsg == "SHOW" -> engine.animate(::visibility, target = 1f)
+            eventMsg == "HIDE" -> engine.animate(::visibility, target = 0f)
+            eventMsg.startsWith("FADE_") -> eventMsg.getEventValue()?.let { engine.animate(::visibility, it) }
+            eventMsg.startsWith("DEPTH_") -> eventMsg.getEventValue()?.let { engine.animate(::z, it) }
+            else -> onEventMessage(engine, eventMsg)
         }
     }
 

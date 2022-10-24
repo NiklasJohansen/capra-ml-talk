@@ -10,7 +10,7 @@ interface EventListener
     /**
      * Called when an event is dispatched.
      * @param engine A reference to the main [PulseEngine] instance.
-     * @param eventMessage The event message.
+     * @param eventMsg The event message.
      */
-    fun handleEvent(engine: PulseEngine, eventMessage: String)
+    fun handleEvent(engine: PulseEngine, eventMsg: String)
 }

@@ -3,22 +3,21 @@ package network
 import com.fasterxml.jackson.annotation.JsonIgnore
 import data.DataSource
 import no.njoh.pulseengine.core.PulseEngine
+import no.njoh.pulseengine.core.asset.types.Font
 import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.graphics.Surface2D
 import no.njoh.pulseengine.core.shared.primitives.Color
+import presentation.Plottable
 import presentation.PresentationEntity
 import presentation.StyleSystem
+import tools.*
 import kotlin.math.min
-import tools.editEntityValue
-import tools.format
-import tools.lerp
-import tools.setDrawColor
 import kotlin.math.abs
 
 /**
  * This entity represent a neuron / brain-cell.
  */
-class Node : PresentationEntity()
+class Node : PresentationEntity(), Plottable<Float, Float>
 {
     /** The output value of the node. */
     var outputValue = 0.5f
@@ -36,18 +35,23 @@ class Node : PresentationEntity()
     var targetValueIndex = -1
 
     // Styling and interaction parameters
-    var textColor = Color(255, 255, 255)
     var textSize = 28f
+    var fontName = ""
     var showText = true
     var editable = true
     var showActivationFunction = true
     var borderSize = 3.5f
+    var textVisibility = 1f
+    var nodeVisibility = 1f
 
     /** Sum of all incoming connections before activation function is applied. */
-    @JsonIgnore var weightedSum = 0f
+    @JsonIgnore var weightedSum = -0.123456f
 
     /** Local cached array of IDs for incoming [Node]s and [Connection]s. */
     @JsonIgnore private var incomingConnectionIds = LongArray(0)
+
+    /** Values in this list can be plotted by the [Graph] entity. */
+    @JsonIgnore override val plotPoints = mutableListOf<Pair<Float, Float>>()
 
     override fun onStart(engine: PulseEngine)
     {
@@ -58,6 +62,9 @@ class Node : PresentationEntity()
             ?.mapNotNull { con -> if (con.toNodeId == this.id) con.id else null }
             ?.toLongArray()
             ?: incomingConnectionIds
+
+        // Init weighted sum
+        weightedSum = outputValue
     }
 
     override fun onUpdate(engine: PulseEngine)
@@ -94,12 +101,16 @@ class Node : PresentationEntity()
             weightedSum += fromNode.outputValue * connection.weight
         }
 
-        if (weightedSum != lastWeightedSum) // Compute outputValue if weightedSum changed
+        if (weightedSum != lastWeightedSum && incomingConnectionIds.isNotEmpty())
         {
+            // Compute outputValue if weightedSum changed
             outputValue = activationFunction.compute(weightedSum)
+            plotPoints.clear()
+            plotPoints.add(0, weightedSum to outputValue)
         }
-        else if (editable) // Edit value by mouse input if enabled
+        else if (editable)
         {
+            // Edit value by mouse input if enabled
             outputValue += editEntityValue(engine, id)
         }
     }
@@ -111,19 +122,18 @@ class Node : PresentationEntity()
         val lowColor = style?.nodeLowColor ?: lowFillColor
         val highColor = style?.nodeHighColor ?: highFillColor
         val borderColor = style?.nodeBorderColor ?: borderColor
-        val a = abs(outputValue).coerceAtMost(1f)
+        val v = abs(outputValue).coerceAtMost(1f)
 
         // Border
-        surface.setDrawColor(borderColor, visibility)
+        surface.setDrawColor(borderColor, visibility * nodeVisibility)
         surface.drawTexture(Texture.BLANK, x, y, width, height, xOrigin = 0.5f, yOrigin = 0.5f, cornerRadius = min(width, height) * 0.5f)
 
         // Fill
-        surface.setDrawColor(
-            red = lerp(lowColor.red, highColor.red, a),
-            green = lerp(lowColor.green, highColor.green, a),
-            blue = lerp(lowColor.blue, highColor.blue, a),
-            alpha = visibility
-        )
+        val r = lerp(lowColor.red, highColor.red, v)
+        val g = lerp(lowColor.green, highColor.green, v)
+        val b = lerp(lowColor.blue, highColor.blue, v)
+        val a = visibility * nodeVisibility * lerp(lowColor.alpha, highColor.alpha, v)
+        surface.setDrawColor(r, g, b, a)
         surface.drawTexture(
             texture = Texture.BLANK,
             x = x,
@@ -138,26 +148,29 @@ class Node : PresentationEntity()
         // Text
         if (showText)
         {
-            surface.setDrawColor(textColor, visibility)
-            surface.drawText(outputValue.format(), x, y, xOrigin = 0.5f, yOrigin = 0.5f, fontSize = textSize)
+            val textColor = style?.nodeTextColor ?: textColor
+            val font = engine.asset.getOrNull<Font>(fontName)
+            surface.setDrawColor(textColor, visibility * textVisibility)
+            surface.drawText(outputValue.format(), x, y, font, textSize, xOrigin = 0.5f, yOrigin = 0.5f)
         }
 
         if (!showActivationFunction || activationFunction == ActivationFunction.NONE)
             return
 
         // Activation indicator border
-        var size = 12f
-        surface.setDrawColor(borderColor, visibility)
+        var size = min(width, height) * 0.3f
+        surface.setDrawColor(borderColor, visibility * nodeVisibility)
         surface.drawTexture(Texture.BLANK, x - width * 0.5f, y, size, size, xOrigin = 0.5f, yOrigin = 0.5f, cornerRadius = size * 0.5f)
 
         // Activation indicator fill
         size -= borderSize * 0.6f
-        surface.setDrawColor(1f, 0.75f, 0f, visibility)
+        surface.setDrawColor(r, g, b, a)
         surface.drawTexture(Texture.BLANK, x - width * 0.5f, y, size, size, xOrigin = 0.5f, yOrigin = 0.5f, cornerRadius = size * 0.5f)
 
         // Activation indicator text
-        surface.setDrawColor(borderColor, visibility)
-        surface.drawText(activationFunction.name.take(1), x - width * 0.5f, y + size * 0.1f, xOrigin = 0.5f, yOrigin = 0.5f, fontSize = size)
+        surface.setDrawColor(borderColor, visibility * nodeVisibility)
+        val font = engine.asset.getOrNull<Font>(fontName)
+        surface.drawText("F", x - width * 0.5f, y, font, size, xOrigin = 0.5f, yOrigin = 0.5f)
     }
 
     /**
@@ -169,6 +182,17 @@ class Node : PresentationEntity()
         return (xPos - x) * (xPos - x) + (yPos - y) * (yPos - y) < radius * radius
     }
 
+    override fun onEventMessage(engine: PulseEngine, eventMessage: String)
+    {
+        when (eventMessage)
+        {
+            "SHOW_TEXT" -> engine.animate(::textVisibility, target = 1f)
+            "HIDE_TEXT" -> engine.animate(::textVisibility, target = 0f)
+            "SET_SIGMOID" -> activationFunction = ActivationFunction.SIGMOID
+            "CLEAR_AFUNC" -> activationFunction = ActivationFunction.NONE
+        }
+    }
+
     companion object
     {
         /** Set true if nodes should be responsible for updating their own output values. */
@@ -178,5 +202,6 @@ class Node : PresentationEntity()
         private var lowFillColor = Color(47, 68, 94)
         private var highFillColor = Color(94, 136, 188)
         private var borderColor = Color(7, 7, 7)
+        private var textColor = Color(7, 7, 7)
     }
 }

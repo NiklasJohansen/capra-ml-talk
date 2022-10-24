@@ -5,9 +5,7 @@ import no.njoh.pulseengine.core.graphics.Surface2D
 import no.njoh.pulseengine.core.shared.primitives.Color
 import presentation.PresentationEntity
 import presentation.StyleSystem
-import tools.editEntityValue
-import tools.format
-import tools.setDrawColor
+import tools.*
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -31,6 +29,8 @@ class Connection : PresentationEntity()
     var showText = true
     var editable = true
     var lineThickness = 4f
+    var lineVisibility = 1f
+    var textVisibility = 1f
 
     override fun onUpdate(engine: PulseEngine)
     {
@@ -51,27 +51,46 @@ class Connection : PresentationEntity()
             drawConnection(engine, surface, fromNode, toNode)
     }
 
+    override fun onEventMessage(engine: PulseEngine, eventMessage: String)
+    {
+        when (eventMessage)
+        {
+            "SHOW_LINE" -> engine.animate(::lineVisibility, target = 1f)
+            "HIDE_LINE" -> engine.animate(::lineVisibility, target = 0f)
+            "SHOW_TEXT" -> engine.animate(::textVisibility, target = 1f)
+            "HIDE_TEXT" -> engine.animate(::textVisibility, target = 0f)
+            else ->
+            {
+                if (eventMessage.startsWith("SET_WEIGHT_"))
+                {
+                    eventMessage.getEventValue()?.let { weight = it }
+                }
+            }
+        }
+    }
+
     private fun drawConnection(engine: PulseEngine, surface: Surface2D, fromNode: Node, toNode: Node)
     {
         // Draw line
         val halfLineWidth = getLineWidth(weight, lineThickness) * 0.5f
         surface.setLineColor(engine, weight)
-        surface.drawQuadVertex(fromNode.x + fromNode.width * 0.5f, fromNode.y - halfLineWidth)
-        surface.drawQuadVertex(fromNode.x + fromNode.width * 0.5f, fromNode.y + halfLineWidth)
-        surface.drawQuadVertex(toNode.x - toNode.width * 0.5f, toNode.y + halfLineWidth)
-        surface.drawQuadVertex(toNode.x - toNode.width * 0.5f, toNode.y - halfLineWidth)
+        surface.drawQuadVertex(fromNode.x + fromNode.width * 0.45f, fromNode.y - halfLineWidth)
+        surface.drawQuadVertex(fromNode.x + fromNode.width * 0.45f, fromNode.y + halfLineWidth)
+        surface.drawQuadVertex(toNode.x - toNode.width * 0.45f, toNode.y + halfLineWidth)
+        surface.drawQuadVertex(toNode.x - toNode.width * 0.45f, toNode.y - halfLineWidth)
 
         // Draw weight value text if enabled
         if (showText)
         {
-            surface.setDrawColor(textColor, visibility)
+            surface.setDrawColor(textColor, visibility * textVisibility)
             surface.drawText(
                 text = weight.format(),
                 x = x,
                 y = y,
+                fontSize = textSize,
+                angle = rotation,
                 xOrigin = 0.5f,
-                yOrigin = 0.5f,
-                fontSize = textSize
+                yOrigin = 0.5f
             )
         }
     }
@@ -82,7 +101,7 @@ class Connection : PresentationEntity()
         val negativeColor = style?.connectionNegativeColor ?: negativeColor
         val positiveColor = style?.connectionPositiveColor ?: positiveColor
         val w = weight.coerceIn(-1f, 1f)
-        val alpha = max(abs(w), 0.5f) * visibility
+        val alpha = max(abs(w), 0.5f) * visibility * lineVisibility
         when
         {
             weight < 0 -> setDrawColor(negativeColor.red, negativeColor.green, negativeColor.blue, alpha)

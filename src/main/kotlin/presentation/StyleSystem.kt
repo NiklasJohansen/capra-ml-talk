@@ -24,6 +24,9 @@ class StyleSystem : SceneSystem()
     /** Border color of nodes. */
     var nodeBorderColor = Color(7, 7, 7)
 
+    /** Color of text inside nodes. */
+    var nodeTextColor = Color(7, 7, 7)
+
     /** Connection color (line between node) when weight is negative. */
     var connectionNegativeColor = Color(1f, 0f, 0f)
 

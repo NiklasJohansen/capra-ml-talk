@@ -8,6 +8,7 @@ import no.njoh.pulseengine.core.input.CursorType
 import no.njoh.pulseengine.core.input.Mouse
 import no.njoh.pulseengine.core.shared.primitives.Array2D
 import no.njoh.pulseengine.core.shared.primitives.Color
+import presentation.Graphable
 import presentation.PresentationEntity
 import tools.setDrawColor
 import kotlin.math.max
@@ -17,14 +18,14 @@ import kotlin.math.max
  * Can be queried from an input [Node] to determine the nodes output value.
  * Also used to get the actual target value for an output node while training.
  */
-class Table : PresentationEntity(), Dataset
+class Table : PresentationEntity(), Dataset, Graphable<Float, Float>
 {
     /** String representation of the dataset used to populate the dataset. */
     var values = ""
-        set (value) { field = value; updateTable(value) }
+        set (value) { field = processValues(value) }
 
     /** The character used to separate each row in the dataset. */
-    var rowSeparator = '\n'
+    var rowSeparator = ';'
 
     /** The character used to separate each column of a row in the dataset. */
     var columnSeparator = ','
@@ -38,12 +39,17 @@ class Table : PresentationEntity(), Dataset
     // Styling parameters of table
     var textSize = 24f
     var borderSize = 0.4f
+    var textColor = Color(0, 0, 0)
     var tableColor = Color(255, 255, 255)
     var headerColor = Color(228, 233, 234)
     var selectedColor = Color(207, 247, 207)
+    var gridColor = Color(0, 0, 0)
 
     /** Local fast lookup table of the dataset. */
     @JsonIgnore private var table = Array2D<String?>(1, 1)
+
+    /** List of values available for graphing. */
+    @JsonIgnore override val graphValues = mutableListOf<Pair<Float, Float>>()
 
     /**
      * Handle mouse input and manual selection of rows.
@@ -98,7 +104,7 @@ class Table : PresentationEntity(), Dataset
         }
 
         // Horizontal lines
-        surface.setDrawColor(0f, 0f, 0f, visibility)
+        surface.setDrawColor(gridColor, visibility)
         for (yIndex in 0 until table.height + 1)
             surface.drawTexture(Texture.BLANK, xStart, yStart + yIndex * rowHeight, width + borderSize, borderSize)
 
@@ -107,6 +113,7 @@ class Table : PresentationEntity(), Dataset
             surface.drawTexture(Texture.BLANK, xStart + xIndex * colWidth, yStart, borderSize, height + borderSize)
 
         // Text
+        surface.setDrawColor(textColor, visibility)
         for (y in 0 until table.height)
         {
             val yPos = yStart + y * rowHeight + (rowHeight * 0.5f)
@@ -123,16 +130,30 @@ class Table : PresentationEntity(), Dataset
     /**
      * Parses the [values] string and updates the local [table].
      */
-    private fun updateTable(values: String)
+    private fun processValues(values: String): String
     {
-        val rows = values.split(rowSeparator).map { it.split(columnSeparator) }
+        val cleanValues = values.trim().replace("\n", "").replace("\r", "")
+        val rows = cleanValues.split(rowSeparator).map { it.split(columnSeparator) }
         val nColumns = rows.maxOf { row -> row.size }
         if (nColumns != table.width || rows.size != table.height)
             table = Array2D(nColumns, rows.size)
 
+        graphValues.clear()
         for ((yIndex, row) in rows.withIndex())
+        {
             for ((xIndex, columnValue) in row.withIndex())
                 table[xIndex, yIndex] = columnValue
+
+            if (row.size > 1 && !(hasHeaders && yIndex == 0))
+            {
+                // Add the data from the two first columns as a graph value
+                val x = row[0].toFloatOrNull() ?: 0f
+                val y = row[1].toFloatOrNull() ?: 0f
+                graphValues.add(x to y)
+            }
+        }
+
+        return cleanValues
     }
 
     /** Returns the value of the currently selected sample at the given column index. */

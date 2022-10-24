@@ -5,15 +5,16 @@ import data.Dataset
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.graphics.Surface2D
-import no.njoh.pulseengine.core.scene.SceneEntity
 import no.njoh.pulseengine.core.scene.SceneState
+import no.njoh.pulseengine.core.shared.primitives.Color
 import no.njoh.pulseengine.core.shared.utils.Extensions.forEachFast
+import no.njoh.pulseengine.core.shared.utils.Extensions.toRadians
 import presentation.EventListener
 import presentation.Graphable
 import presentation.PresentationEntity
 import tools.nextRandomGaussian
-import kotlin.math.max
-import kotlin.math.sqrt
+import tools.setDrawColor
+import kotlin.math.*
 
 /**
  * Neural network trainer implementing the backpropagation algorithm.
@@ -38,7 +39,16 @@ class Trainer : PresentationEntity(), Graphable<Int, Float>, EventListener
     /** How many samples to accumulate corrections for before corrections are applied to the weight. */
     var batchSize = 100
 
-    @JsonIgnore override val graphValues = mutableListOf<Pair<Int, Float>>()
+    // Styling parameters
+    var showAdjustmentArrows = false
+    var arrowTextureName = ""
+    var arrowSize = 50f
+    var positiveArrowColor = Color(0f, 1f, 0f)
+    var negativeArrowColor = Color(1f, 0f, 0f)
+
+    @JsonIgnore var epoch = 0
+    @JsonIgnore var trainedBatches = 0
+    @JsonIgnore var meanSquaredError = 0f
     @JsonIgnore private var networkLayers = listOf<List<Node>>()
     @JsonIgnore private var outgoingConnections = mutableMapOf<Long, MutableList<Connection>>()
     @JsonIgnore private var nodeError = mutableMapOf<Long, Float>()
@@ -47,10 +57,8 @@ class Trainer : PresentationEntity(), Graphable<Int, Float>, EventListener
     @JsonIgnore private var lastTrainingIterationTime = 0.0
     @JsonIgnore private var accumulatedTime = 0.0
     @JsonIgnore private var accumulatedSquaredError = 0f
-    @JsonIgnore private var meanSquaredError = 0f
-    @JsonIgnore private var trainedBatches = 0
     @JsonIgnore private var trainedSamples = 0
-    @JsonIgnore private var epoch = 0
+    @JsonIgnore override val graphValues = mutableListOf<Pair<Int, Float>>()
 
     override fun onStart(engine: PulseEngine)
     {
@@ -247,6 +255,28 @@ class Trainer : PresentationEntity(), Graphable<Int, Float>, EventListener
 
     override fun onDrawToScreen(engine: PulseEngine, surface: Surface2D)
     {
+        if (showAdjustmentArrows)
+        {
+            val arrowTexture = engine.asset.getOrNull(arrowTextureName) ?: Texture.BLANK
+            for ((conId, correction) in lastWightCorrection)
+            {
+                val connection = engine.scene.getEntityOfType<Connection>(conId) ?: continue
+                val color = if (correction < 0) negativeArrowColor else positiveArrowColor
+                val angle = connection.rotation //+ if (correction < 0) -90f else 90f
+                surface.setDrawColor(color, visibility)
+                surface.drawTexture(
+                    texture = arrowTexture,
+                    x = connection.x + 0.5f * cos(-angle.toRadians()) * (connection.width + arrowSize),
+                    y = connection.y + 0.5f * sin(-angle.toRadians()) * (connection.width + arrowSize),
+                    width = arrowSize,
+                    height = arrowSize,
+                    rot = angle + if (correction < 0) -90f else 90f,
+                    xOrigin = 0.5f,
+                    yOrigin = 0.5f
+                )
+            }
+        }
+
         if (engine.scene.state != SceneState.STOPPED)
             return // Only draw Trainer in editor
 

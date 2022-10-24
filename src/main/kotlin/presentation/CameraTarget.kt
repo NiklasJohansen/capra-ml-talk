@@ -32,9 +32,9 @@ class CameraTarget : SceneEntity(), EventListener
         surface.drawText(id.toString(), x, y, xOrigin = 0.5f, yOrigin = 0.5f, fontSize = 10f)
     }
 
-    override fun handleEvent(engine: PulseEngine, eventMessage: String)
+    override fun handleEvent(engine: PulseEngine, eventMsg: String)
     {
-        if (eventMessage == "TRACK")
+        if (eventMsg == "TRACK")
         {
             engine.scene.getFirstEntityOfType<Camera>()?.let()
             {

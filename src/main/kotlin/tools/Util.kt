@@ -17,7 +17,11 @@ import kotlin.reflect.KMutableProperty
  * Returns a formatted string representation of a [Float] value.
  * Example: 0.123445 -> "0.12"
  */
-fun Float.format() = String.format(Locale.ENGLISH, "%.2f", this)
+fun Float.format(): String
+{
+    val string = String.format(Locale.ENGLISH, "%.2f", this)
+    return if (string == "-0.00") "0.00" else string
+}
 
 /**
  * Linear interpolates between [a] and [b] with value [v] in range 0.0 - 1.0.
@@ -50,7 +54,7 @@ fun editEntityValue(engine: PulseEngine, entityId: Long): Float
             selectedEntity = entityId
 
         if (selectedEntity == e.id)
-            return engine.input.ydMouse * -0.01f
+            return (engine.input.ydMouse / 2).toInt() * -0.01f
     }
     else selectedEntity = null
 
@@ -117,3 +121,24 @@ inline fun <reified T> List<T>.mapToLongArray(transform: (T) -> Long): LongArray
  */
 inline fun <reified T> List<T>.mapToFloatArray(transform: (T) -> Float): FloatArray =
     FloatArray(this.size) { i -> transform(this[i]) }
+
+/**
+ * Returns a randomly generated [Color].
+ */
+fun kotlin.random.Random.nextColor(
+    hue: Float = 1f,
+    saturation: Float = 0.7f,
+    luminance: Float = 0.9f,
+): Color {
+    val c = java.awt.Color.getHSBColor(
+        hue * nextFloat(),
+        saturation + (1f - saturation) * nextFloat(),
+        luminance + (1f - luminance) * nextFloat()
+    )
+    return Color(c.red / 255f, c.green / 255f, c.blue / 255f)
+}
+
+/**
+ * Returns the value after the last '_' as a float, or null.
+ */
+fun String.getEventValue() = this.substringAfterLast("_").toFloatOrNull()

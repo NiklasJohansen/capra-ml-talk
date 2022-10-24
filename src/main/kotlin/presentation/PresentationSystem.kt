@@ -2,6 +2,7 @@ package presentation
 
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.input.Key
+import no.njoh.pulseengine.core.scene.SceneState
 import no.njoh.pulseengine.core.scene.SceneSystem
 
 /**
@@ -20,6 +21,9 @@ class PresentationSystem : SceneSystem()
      */
     override fun onUpdate(engine: PulseEngine)
     {
+        if (engine.scene.state != SceneState.RUNNING)
+            return // Only relevant to update slide index while presentation is running
+
         if (engine.input.wasClicked(Key.LEFT)) slideIndex--
         if (engine.input.wasClicked(Key.RIGHT) || engine.input.wasClicked(Key.SPACE)) slideIndex++
 

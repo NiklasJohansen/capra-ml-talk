@@ -4,8 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.graphics.Surface2D
 import no.njoh.pulseengine.core.input.Mouse
+import no.njoh.pulseengine.core.shared.primitives.Color
 import presentation.PresentationEntity
+import tools.lerp
+import tools.setDrawColor
 import kotlin.math.max
+import kotlin.math.sqrt
 
 /**
  * This entity represent a dataset of images and can be used to manipulate and draw the images on screen.
@@ -15,6 +19,18 @@ class ImageSet : PresentationEntity(), Dataset
 {
     /** The name of the dataset asset to source images/samples from. */
     var datasetAssetName: String = ""
+
+    /** The color if dark pixels. */
+    var pixelLowColor = Color(0f, 0f, 0f)
+
+    /** The color of lit pixels. */
+    var pixelHighColor = Color(1f, 1f, 1f)
+
+    /** The color of the image border. */
+    var borderColor = Color(0f, 0f, 0f)
+
+    /** The size of the image border. */
+    var borderSize = 10f
 
     /** Holds the index of the currently selected image/sample. */
     override var selectedSampleIndex = 0
@@ -32,16 +48,32 @@ class ImageSet : PresentationEntity(), Dataset
         val ym = engine.input.yWorldMouse + height * 0.5f
         if (xm > x && xm < x + width && ym > y && ym < y + height)
         {
+            val isLeftPressed = engine.input.isPressed(Mouse.LEFT)
+            val isRightPressed = engine.input.isPressed(Mouse.RIGHT)
+            if (!isLeftPressed && !isRightPressed)
+                return // return if none of the mouse buttons is pressed
+
+            val radius = 1
+            val maxDist = sqrt(radius * radius + radius * radius.toFloat())
             val xCell = ((xm - x) / width * dataset.imageWidth).toInt()
             val yCell = ((ym - y) / height * dataset.imageHeight).toInt()
-            val pixelIndex = yCell * dataset.imageWidth + xCell
-            var pixelValue = dataset.getPixelValue(selectedSampleIndex, pixelIndex)
-
-            // Change the pixel value with left and right mouse keys
-            if (engine.input.isPressed(Mouse.LEFT)) pixelValue += 0.2f
-            if (engine.input.isPressed(Mouse.RIGHT)) pixelValue -= 0.5f
-
-            dataset.setPixelValue(selectedSampleIndex, pixelIndex, pixelValue.coerceIn(0f, 1f))
+            for (y0 in -radius .. radius)
+            {
+                for (x0 in -radius .. radius)
+                {
+                    if (xCell + x0 >= 0 && xCell + x0 < dataset.imageWidth && yCell + y0 >= 0 && yCell + y0 < dataset.imageHeight)
+                    {
+                        val pixelIndex = (yCell + y0) * dataset.imageWidth + (xCell + x0)
+                        var pixelValue = dataset.getPixelValue(selectedSampleIndex, pixelIndex)
+                        val a = 1f - (sqrt( x0 * x0 + y0 * y0.toFloat()) / maxDist)
+                        if (isLeftPressed)
+                            pixelValue += 0.1f * a * a
+                        else if (isRightPressed)
+                            pixelValue -= 0.5f * a
+                        dataset.setPixelValue(selectedSampleIndex, pixelIndex, pixelValue.coerceIn(0f, 1f))
+                    }
+                }
+            }
         }
     }
 
@@ -60,12 +92,24 @@ class ImageSet : PresentationEntity(), Dataset
         val imageIndex = selectedSampleIndex.coerceIn(0, dataset.imageCount - 1)
         var pixelIndex = 0
 
+        // Draw border
+        surface.setDrawColor(borderColor, visibility)
+        surface.drawQuad(xStart, yStart - borderSize, -borderSize, height + borderSize * 2f)
+        surface.drawQuad(xStart + width, yStart - borderSize, borderSize, height + borderSize * 2f)
+        surface.drawQuad(xStart - borderSize, yStart, width + borderSize * 2, -borderSize)
+        surface.drawQuad(xStart - borderSize, yStart + height, width + borderSize * 2, borderSize)
+
+        // Draw pixels
         for (yIndex in 0 until dataset.imageHeight)
         {
             for (xIndex in 0 until dataset.imageWidth)
             {
-                val v = 1f - dataset.getPixelValue(imageIndex, pixelIndex++) // Invert value to have 1.0=black and 0.0=white
-                surface.setDrawColor(v, v, v, visibility)
+                val v = dataset.getPixelValue(imageIndex, pixelIndex++)
+                val r = lerp(pixelLowColor.red, pixelHighColor.red, v)
+                val g = lerp(pixelLowColor.green, pixelHighColor.green, v)
+                val b = lerp(pixelLowColor.blue, pixelHighColor.blue, v)
+                val a = lerp(pixelLowColor.alpha, pixelHighColor.alpha, v)
+                surface.setDrawColor(r, g, b, a * visibility)
                 surface.drawQuad(xStart + xIndex * pixelWidth, yStart + yIndex * pixelHeight, pixelWidth, pixelHeight)
             }
         }
