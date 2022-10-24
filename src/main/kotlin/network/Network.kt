@@ -2,6 +2,8 @@ package network
 
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.scene.SceneEntity.Companion.DEAD
+import tools.mapToArray
+import tools.mapToLongArray
 import kotlin.math.min
 
 /**
@@ -39,6 +41,13 @@ data class Network(
             engine.scene.getEntityOfType<Connection>(connectionIds[i])?.weight = weights[i]
     }
 
+    /** Computes the output value for all nodes in the network. */
+    fun compute(engine: PulseEngine) {
+        for (layer in nodeIds)
+            for (nodeId in layer)
+                engine.scene.getEntityOfType<Node>(nodeId)?.computeOutputValue(engine)
+    }
+
     /** Destroys the network by killing all [Node] and [Connection] entities. */
     fun destroy(engine: PulseEngine)
     {
@@ -59,5 +68,48 @@ data class Network(
 
         /** Reference to an immutable empty [Network] */
         val EMPTY = Network(emptyArray(), EMPTY_IDS)
+
+        fun generateFromDatasetId(engine: PulseEngine, datasetId: Long): Network
+        {
+            // Find output nodes
+            val outputLayer = mutableListOf<Node>()
+            engine.scene.forEachEntityOfType<Node> { node ->
+                if (node.dataSourceId == datasetId && node.targetValueIndex >= 0)
+                    outputLayer.add(node)
+            }
+
+            // Find subsequent nodes and create network layers
+            val connections = mutableListOf<Connection>()
+            val layers = mutableListOf(outputLayer)
+            var lastLayer = outputLayer
+            var thisLayer = mutableListOf<Node>()
+            while (true)
+            {
+                // Find each node connected to the last layer
+                engine.scene.forEachEntityOfType<Connection> { connection ->
+                    // Is connection connected to any of the node in the last layer
+                    if (lastLayer.any { node -> node.id == connection.toNodeId })
+                    {
+                        val fromNode = engine.scene.getEntityOfType<Node>(connection.fromNodeId)
+                        if (fromNode != null && fromNode !in thisLayer)
+                            thisLayer.add(fromNode)
+
+                        connections.add(connection)
+                    }
+                }
+
+                if (thisLayer.isEmpty())
+                    break // No more nodes in network
+
+                layers.add(0, thisLayer)
+                lastLayer = thisLayer
+                thisLayer = mutableListOf()
+            }
+
+            return Network(
+                nodeIds = layers.mapToArray { it.mapToLongArray { it.id } },
+                connectionIds = connections.mapToLongArray { it.id }
+            )
+        }
     }
 }
