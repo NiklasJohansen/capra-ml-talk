@@ -35,4 +35,3 @@ class PresentationMain : PulseEngineGame()
     override fun onRender() { }
     override fun onDestroy() { }
 }
-//capra-ml-talk
