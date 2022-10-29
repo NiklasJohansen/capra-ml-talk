@@ -1,4 +1,4 @@
-package data
+package presentation
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import network.Node
@@ -6,7 +6,6 @@ import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Font
 import no.njoh.pulseengine.core.graphics.Surface2D
 import no.njoh.pulseengine.core.shared.primitives.Color
-import presentation.PresentationEntity
 import tools.mapToLongArray
 import tools.setDrawColor
 import kotlin.math.min

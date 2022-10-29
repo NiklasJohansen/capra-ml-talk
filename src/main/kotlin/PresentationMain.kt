@@ -11,11 +11,8 @@ class PresentationMain : PulseEngineGame()
 {
     override fun onCreate()
     {
-        engine.window.title = "Capra ML-presentation 03.11.2022"
+        engine.window.title = "Capra - Fag og Øl (03.11.2022) - Hva er maskinlæring, sånn egentlig?"
         engine.widget.add(CommandLine(), Profiler(), SceneEditor())
-
-        // TODO: Remove
-        engine.data.saveDirectory = "D:\\Users\\Niklas\\OneDrive\\Documents\\Projects\\neural-network-presentation\\src\\main\\resources"
 
         // Load initial assets
         engine.asset.loadAllTextures("/assets")
@@ -23,7 +20,7 @@ class PresentationMain : PulseEngineGame()
         engine.asset.loadFont("/assets/source-sans-pro.bold.ttf", "font_bold", fontSize = 100f)
 
         // Load first scene either from save directory or from classpath
-        val startSceneFileName = "scenes/nnp-0.scn"
+        val startSceneFileName = "scenes/main.scn"
         val isSceneFileInSaveDirectory = engine.data.exists(startSceneFileName)
         engine.scene.loadAndSetActive(startSceneFileName, fromClassPath = !isSceneFileInSaveDirectory)
         engine.scene.start()
@@ -38,3 +35,4 @@ class PresentationMain : PulseEngineGame()
     override fun onRender() { }
     override fun onDestroy() { }
 }
+//capra-ml-talk
