@@ -19,7 +19,7 @@ class PresentationMain : PulseEngineGame()
         engine.asset.loadFont("/assets/source-sans-pro.regular.ttf", "font_normal", fontSize = 100f)
         engine.asset.loadFont("/assets/source-sans-pro.bold.ttf", "font_bold", fontSize = 100f)
 
-        // Load first scene either from save directory or from classpath
+        // Load main scene either from save directory or from classpath
         val startSceneFileName = "scenes/main.scn"
         val isSceneFileInSaveDirectory = engine.data.exists(startSceneFileName)
         engine.scene.loadAndSetActive(startSceneFileName, fromClassPath = !isSceneFileInSaveDirectory)
