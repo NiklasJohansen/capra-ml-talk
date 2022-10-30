@@ -14,9 +14,6 @@ import no.njoh.pulseengine.core.shared.primitives.Color
  */
 class SlideTrigger : SceneEntity()
 {
-    /** The name of this trigger. Only visible in editor. */
-    var name = "Slide Trigger"
-
     /** The background color of the entity visible in editor. */
     var color = Color(0.9f,0.8f, 0.8f)
 
