@@ -8,6 +8,7 @@ import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.graphics.Surface2D
 import no.njoh.pulseengine.core.shared.primitives.Color
 import presentation.Plottable
+import presentation.Point
 import presentation.PresentationEntity
 import presentation.StyleSystem
 import tools.*
@@ -17,7 +18,7 @@ import kotlin.math.abs
 /**
  * This entity represent a neuron / brain-cell.
  */
-class Node : PresentationEntity(), Plottable<Float, Float>
+class Node : PresentationEntity(), Plottable
 {
     /** The output value of the node. */
     var outputValue = 0.5f
@@ -51,7 +52,7 @@ class Node : PresentationEntity(), Plottable<Float, Float>
     @JsonIgnore private var incomingConnectionIds = LongArray(0)
 
     /** Values in this list can be plotted by the [Graph] entity. */
-    @JsonIgnore override val plotPoints = mutableListOf<Pair<Float, Float>>()
+    @JsonIgnore override val plotPoints = mutableListOf<Point>()
 
     override fun onStart(engine: PulseEngine)
     {
@@ -106,7 +107,7 @@ class Node : PresentationEntity(), Plottable<Float, Float>
             // Compute outputValue if weightedSum changed
             outputValue = activationFunction.compute(weightedSum)
             plotPoints.clear()
-            plotPoints.add(0, weightedSum to outputValue)
+            plotPoints.add(0, Point(weightedSum, outputValue))
         }
         else if (editable)
         {
@@ -132,7 +133,7 @@ class Node : PresentationEntity(), Plottable<Float, Float>
         val r = lerp(lowColor.red, highColor.red, v)
         val g = lerp(lowColor.green, highColor.green, v)
         val b = lerp(lowColor.blue, highColor.blue, v)
-        val a = visibility * nodeVisibility * lerp(lowColor.alpha, highColor.alpha, v)
+        val a = lerp(lowColor.alpha, highColor.alpha, v) * visibility * nodeVisibility
         surface.setDrawColor(r, g, b, a)
         surface.drawTexture(
             texture = Texture.BLANK,

@@ -9,6 +9,7 @@ import no.njoh.pulseengine.core.input.Mouse
 import no.njoh.pulseengine.core.shared.primitives.Array2D
 import no.njoh.pulseengine.core.shared.primitives.Color
 import presentation.Graphable
+import presentation.Point
 import presentation.PresentationEntity
 import tools.setDrawColor
 import kotlin.math.max
@@ -18,7 +19,7 @@ import kotlin.math.max
  * Can be queried from an input [Node] to determine the nodes output value.
  * Also used to get the actual target value for an output node while training.
  */
-class Table : PresentationEntity(), Dataset, Graphable<Float, Float>
+class Table : PresentationEntity(), Dataset, Graphable
 {
     /** String representation of the dataset used to populate the dataset. */
     var values = ""
@@ -49,7 +50,7 @@ class Table : PresentationEntity(), Dataset, Graphable<Float, Float>
     @JsonIgnore private var table = Array2D<String?>(1, 1)
 
     /** List of values available for graphing. */
-    @JsonIgnore override val graphValues = mutableListOf<Pair<Float, Float>>()
+    @JsonIgnore override val graphValues = mutableListOf<Point>()
 
     /**
      * Handle mouse input and manual selection of rows.
@@ -149,7 +150,7 @@ class Table : PresentationEntity(), Dataset, Graphable<Float, Float>
                 // Add the data from the two first columns as a graph value
                 val x = row[0].toFloatOrNull() ?: 0f
                 val y = row[1].toFloatOrNull() ?: 0f
-                graphValues.add(x to y)
+                graphValues.add(Point(x, y))
             }
         }
 

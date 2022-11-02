@@ -42,15 +42,6 @@ class Connection : PresentationEntity()
             set(DEAD)
     }
 
-    override fun onDrawToScreen(engine: PulseEngine, surface: Surface2D)
-    {
-        val fromNode = engine.scene.getEntityOfType<Node>(fromNodeId)
-        val toNode = engine.scene.getEntityOfType<Node>(toNodeId)
-
-        if (fromNode != null && toNode != null)
-            drawConnection(engine, surface, fromNode, toNode)
-    }
-
     override fun onEventMessage(engine: PulseEngine, eventMessage: String)
     {
         when (eventMessage)
@@ -61,12 +52,18 @@ class Connection : PresentationEntity()
             "HIDE_TEXT" -> engine.animate(::textVisibility, target = 0f)
             else ->
             {
-                if (eventMessage.startsWith("SET_WEIGHT_"))
-                {
-                    eventMessage.getEventValue()?.let { weight = it }
-                }
+                if (eventMessage.startsWith("SET_WEIGHT_")) eventMessage.getEventValue()?.let { weight = it }
             }
         }
+    }
+
+    override fun onDrawToScreen(engine: PulseEngine, surface: Surface2D)
+    {
+        val fromNode = engine.scene.getEntityOfType<Node>(fromNodeId)
+        val toNode = engine.scene.getEntityOfType<Node>(toNodeId)
+
+        if (fromNode != null && toNode != null)
+            drawConnection(engine, surface, fromNode, toNode)
     }
 
     private fun drawConnection(engine: PulseEngine, surface: Surface2D, fromNode: Node, toNode: Node)

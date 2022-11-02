@@ -134,11 +134,8 @@ class Graph : PresentationEntity()
     private fun drawGraphLines(surface: Surface2D, engine: PulseEngine)
     {
         val entity = engine.scene.getEntity(entityIdToGraph)
-        if (entity !is Graphable<*, *> || entity.graphValues.isEmpty())
+        if (entity !is Graphable || entity.graphValues.isEmpty())
             return
-
-        if (id == 1494L)
-            println()
 
         val values = entity.graphValues
         val xInvRange = 1f / (xMaxValue - xMinValue).coerceAtLeast(0.00000001f)
@@ -150,11 +147,10 @@ class Graph : PresentationEntity()
         surface.setDrawColor(lineColor, visibility)
         for (i in 1 until values.size)
         {
-            val x0 = xLeft + width * (values[i - 1].first.toFloat() - xMinValue) * xInvRange
-            val y0 = yTop + height * (1f - (values[i - 1].second.toFloat() - yMinValue) * yInvRange)
-            val x1 = xLeft + width * (values[i].first.toFloat() - xMinValue) * xInvRange
-
-            val y1 = yTop + height * (1f - (values[i].second.toFloat() - yMinValue) * yInvRange)
+            val x0 = xLeft + width * (values[i - 1].x - xMinValue) * xInvRange
+            val y0 = yTop + height * (1f - (values[i - 1].y - yMinValue) * yInvRange)
+            val x1 = xLeft + width * (values[i].x - xMinValue) * xInvRange
+            val y1 = yTop + height * (1f - (values[i].y - yMinValue) * yInvRange)
 
             if (lineThickness == 1f)
                 surface.drawLine(x0, y0, x1, y1)
@@ -182,8 +178,8 @@ class Graph : PresentationEntity()
 
         // Update max values if last value is outside of graph range
         val lastValue = values.last()
-        val xLast = lastValue.first.toFloat()
-        val yLast = lastValue.second.toFloat()
+        val xLast = lastValue.x
+        val yLast = lastValue.y
         if (xLast > xMaxValue) xMaxValue = xLast
         if (yLast > yMaxValue) yMaxValue = yLast
     }
@@ -191,7 +187,7 @@ class Graph : PresentationEntity()
     private fun drawPlotPoints(surface: Surface2D, engine: PulseEngine)
     {
         val entity = engine.scene.getEntity(entityIdToPlot)
-        if (entity !is Plottable<*, *> || entity.plotPoints.isEmpty())
+        if (entity !is Plottable || entity.plotPoints.isEmpty())
             return
 
         val points = entity.plotPoints
@@ -203,8 +199,8 @@ class Graph : PresentationEntity()
         surface.setDrawColor(plotPointColor, visibility)
         points.forEachFast()
         {
-            val xPoint = it.first.toFloat().coerceIn(xMinValue, xMaxValue)
-            val yPoint = it.second.toFloat().coerceIn(yMinValue, yMaxValue)
+            val xPoint = it.x.coerceIn(xMinValue, xMaxValue)
+            val yPoint = it.y.coerceIn(yMinValue, yMaxValue)
             val x0 = xLeft + width * ((xPoint - xMinValue) * xInvRange)
             val y0 = yTop + height * (1f - (yPoint - yMinValue) * yInvRange)
 
@@ -220,7 +216,7 @@ class Graph : PresentationEntity()
                 cornerRadius = plotPointSize / 2f
             )
 
-            val text = (it.second as? Float)?.format() ?: it.second.toString()
+            val text = it.y.format()
             surface.setDrawColor(plotPointTextColor, visibility)
             surface.drawText(text, x0 + plotPointSize, y0 - plotPointSize, xOrigin = 0f, yOrigin = 0.5f, fontSize = plotPointTextsize)
         }
@@ -239,17 +235,25 @@ class Graph : PresentationEntity()
 /**
  * Interface for entities to provide values that can be graphed by the [Graph] class.
  */
-interface Graphable <X : Number, Y : Number>
+interface Graphable
 {
     /** Values added to this list will be graphed. */
-    val graphValues: MutableList<Pair<X, Y>>
+    val graphValues: MutableList<Point>
 }
 
 /**
  * Interface for entities to provide values that can be plotted by the [Graph] class.
  */
-interface Plottable <X : Number, Y : Number>
+interface Plottable
 {
-    /** Values added to this list will be plotteed. */
-    val plotPoints: MutableList<Pair<X, Y>>
+    /** Values added to this list will be plotted. */
+    val plotPoints: MutableList<Point>
 }
+
+/**
+ * Class represents a 2D point.
+ */
+data class Point(
+    val x: Float,
+    val y: Float
+)

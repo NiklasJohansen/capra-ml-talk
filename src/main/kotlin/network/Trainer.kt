@@ -11,6 +11,7 @@ import no.njoh.pulseengine.core.shared.utils.Extensions.forEachFast
 import no.njoh.pulseengine.core.shared.utils.Extensions.toRadians
 import presentation.EventListener
 import presentation.Graphable
+import presentation.Point
 import presentation.PresentationEntity
 import tools.nextRandomGaussian
 import tools.setDrawColor
@@ -19,7 +20,7 @@ import kotlin.math.*
 /**
  * Neural network trainer implementing the backpropagation algorithm.
  */
-class Trainer : PresentationEntity(), Graphable<Int, Float>, EventListener
+class Trainer : PresentationEntity(), Graphable, EventListener
 {
     /** Set true to start training. */
     var trainNetwork = false
@@ -58,7 +59,7 @@ class Trainer : PresentationEntity(), Graphable<Int, Float>, EventListener
     @JsonIgnore private var accumulatedTime = 0.0
     @JsonIgnore private var accumulatedSquaredError = 0f
     @JsonIgnore private var trainedSamples = 0
-    @JsonIgnore override val graphValues = mutableListOf<Pair<Int, Float>>()
+    @JsonIgnore override val graphValues = mutableListOf<Point>()
 
     override fun onStart(engine: PulseEngine)
     {
@@ -157,7 +158,7 @@ class Trainer : PresentationEntity(), Graphable<Int, Float>, EventListener
         {
             trainedBatches++
             meanSquaredError = accumulatedSquaredError / trainedSamples
-            graphValues.add(trainedBatches to meanSquaredError)
+            graphValues.add(Point(trainedBatches.toFloat(), meanSquaredError))
             accumulatedSquaredError = 0f
             trainedSamples = 0
         }
