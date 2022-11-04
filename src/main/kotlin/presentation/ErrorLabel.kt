@@ -17,11 +17,22 @@ import kotlin.math.max
  */
 class ErrorLabel : PresentationEntity()
 {
+    /** ID of the [Dataset] to measure the error from. Optional if the [trainerId] is set. */
     var datasetId = -1L
+
+    /** ID of the [Trainer] to source error calculations from. Optional if error is fetched from a [Dataset]. */
     var trainerId = -1L
+
+    /** Set true to square the final error calculation. */
     var squareError = true
+
+    /** Set true of the error should be the sum of all samples in the dataset or just the current sample. */
     var sumAllSamples = false
+
+    /** Of error should be calculated for only a specific sample in the [Dataset]. */
     var useOnlySampleIndex = -1
+
+    // Styling parameters
     var textSize = 72f
     var fontName = ""
     var color = Color(1f, 1f, 1f)
