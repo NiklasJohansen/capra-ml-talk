@@ -6,7 +6,7 @@ import network.Network
 import network.Node
 import network.Trainer
 import no.njoh.pulseengine.core.PulseEngine
-import no.njoh.pulseengine.core.graphics.Surface2D
+import no.njoh.pulseengine.core.graphics.surface.Surface
 import no.njoh.pulseengine.core.shared.primitives.Color
 import tools.format
 import tools.setDrawColor
@@ -46,7 +46,7 @@ class ErrorLabel : PresentationEntity()
         this.network = Network.generateFromDatasetId(engine, datasetId)
     }
 
-    override fun onDrawToScreen(engine: PulseEngine, surface: Surface2D)
+    override fun onDrawToScreen(engine: PulseEngine, surface: Surface)
     {
         val meanSquaredError = getErrorFromTrainer(engine) ?: calculateErrorFromNetwork(engine) ?: return
         surface.setDrawColor(color, visibility)

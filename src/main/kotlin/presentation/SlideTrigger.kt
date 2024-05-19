@@ -3,16 +3,16 @@ package presentation
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Texture
-import no.njoh.pulseengine.core.graphics.Surface2D
-import no.njoh.pulseengine.core.scene.SceneEntity
+import no.njoh.pulseengine.core.graphics.surface.Surface
 import no.njoh.pulseengine.core.scene.SceneState
 import no.njoh.pulseengine.core.shared.primitives.Color
+import no.njoh.pulseengine.modules.scene.entities.StandardSceneEntity
 
 /**
  * Responsible for dispatching event messages when the presentation transition from and to a certain slide index.
  * Messages are dispatched to a one or more entities of type [EventListener].
  */
-class SlideTrigger : SceneEntity()
+class SlideTrigger : StandardSceneEntity()
 {
     /** The background color of the entity visible in editor. */
     var color = Color(0.9f,0.8f, 0.8f)
@@ -66,7 +66,7 @@ class SlideTrigger : SceneEntity()
         lastSlideIndex = slideIndex
     }
 
-    override fun onRender(engine: PulseEngine, surface: Surface2D)
+    override fun onRender(engine: PulseEngine, surface: Surface)
     {
         if (engine.scene.state != SceneState.STOPPED)
             return // Only draw Trigger in editor

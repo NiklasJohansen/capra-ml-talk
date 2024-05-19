@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import data.Dataset
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Texture
-import no.njoh.pulseengine.core.graphics.Surface2D
+import no.njoh.pulseengine.core.graphics.surface.Surface
 import no.njoh.pulseengine.core.scene.SceneState
 import no.njoh.pulseengine.core.shared.primitives.Color
 import no.njoh.pulseengine.core.shared.utils.Extensions.forEachFast
@@ -254,7 +254,7 @@ class Trainer : PresentationEntity(), Graphable, EventListener
         outgoingConnections[this.id]?.forEachFast { action(it) }
     }
 
-    override fun onDrawToScreen(engine: PulseEngine, surface: Surface2D)
+    override fun onDrawToScreen(engine: PulseEngine, surface: Surface)
     {
         if (showAdjustmentArrows)
         {
@@ -271,7 +271,7 @@ class Trainer : PresentationEntity(), Graphable, EventListener
                     y = connection.y + 0.5f * sin(-angle.toRadians()) * (connection.width + arrowSize),
                     width = arrowSize,
                     height = arrowSize,
-                    rot = angle + if (correction < 0) -90f else 90f,
+                    angle = angle + if (correction < 0) -90f else 90f,
                     xOrigin = 0.5f,
                     yOrigin = 0.5f
                 )

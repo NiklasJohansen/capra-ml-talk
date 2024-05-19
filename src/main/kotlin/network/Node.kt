@@ -5,7 +5,7 @@ import data.DataSource
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Font
 import no.njoh.pulseengine.core.asset.types.Texture
-import no.njoh.pulseengine.core.graphics.Surface2D
+import no.njoh.pulseengine.core.graphics.surface.Surface
 import no.njoh.pulseengine.core.shared.primitives.Color
 import presentation.Plottable
 import presentation.Point
@@ -116,7 +116,7 @@ class Node : PresentationEntity(), Plottable
         }
     }
 
-    override fun onDrawToScreen(engine: PulseEngine, surface: Surface2D)
+    override fun onDrawToScreen(engine: PulseEngine, surface: Surface)
     {
         // Get colors from StyleSystem
         val style = engine.scene.getSystemOfType<StyleSystem>()

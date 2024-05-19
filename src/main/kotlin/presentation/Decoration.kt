@@ -2,7 +2,7 @@ package presentation
 
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Texture
-import no.njoh.pulseengine.core.graphics.Surface2D
+import no.njoh.pulseengine.core.graphics.surface.Surface
 import no.njoh.pulseengine.core.shared.primitives.Color
 import tools.setDrawColor
 
@@ -17,7 +17,7 @@ class Decoration : PresentationEntity()
 
     init { setNot(DISCOVERABLE) }
 
-    override fun onDrawToScreen(engine: PulseEngine, surface: Surface2D)
+    override fun onDrawToScreen(engine: PulseEngine, surface: Surface)
     {
         surface.setDrawColor(color, visibility)
         surface.drawTexture(
@@ -26,7 +26,7 @@ class Decoration : PresentationEntity()
             y = y,
             width = width,
             height = height,
-            rot = rotation,
+            angle = rotation,
             xOrigin = 0.5f,
             yOrigin = 0.5f,
             cornerRadius = cornerRadius

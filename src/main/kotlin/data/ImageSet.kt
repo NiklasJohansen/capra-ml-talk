@@ -1,9 +1,10 @@
 package data
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import demos.mnist.MnistAsset
 import no.njoh.pulseengine.core.PulseEngine
-import no.njoh.pulseengine.core.graphics.Surface2D
-import no.njoh.pulseengine.core.input.Mouse
+import no.njoh.pulseengine.core.graphics.surface.Surface
+import no.njoh.pulseengine.core.input.MouseButton
 import no.njoh.pulseengine.core.shared.primitives.Color
 import presentation.PresentationEntity
 import tools.lerp
@@ -48,8 +49,8 @@ class ImageSet : PresentationEntity(), Dataset
         val ym = engine.input.yWorldMouse + height * 0.5f
         if (xm > x && xm < x + width && ym > y && ym < y + height)
         {
-            val isLeftPressed = engine.input.isPressed(Mouse.LEFT)
-            val isRightPressed = engine.input.isPressed(Mouse.RIGHT)
+            val isLeftPressed = engine.input.isPressed(MouseButton.LEFT)
+            val isRightPressed = engine.input.isPressed(MouseButton.RIGHT)
             if (!isLeftPressed && !isRightPressed)
                 return // return if none of the mouse buttons is pressed
 
@@ -80,10 +81,10 @@ class ImageSet : PresentationEntity(), Dataset
     /**
      * Draw the selected image from the dataset.
      */
-    override fun onDrawToScreen(engine: PulseEngine, surface: Surface2D)
+    override fun onDrawToScreen(engine: PulseEngine, surface: Surface)
     {
         // Get a reference to the dataset
-        dataset = engine.asset.getOrNull(datasetAssetName) ?: EMPTY_DATASET
+        dataset = engine.asset.getOrNull<MnistAsset>(datasetAssetName) ?: EMPTY_DATASET
 
         val xStart = x - width * 0.5f
         val yStart = y - height * 0.5f

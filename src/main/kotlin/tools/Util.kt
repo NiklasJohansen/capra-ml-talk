@@ -1,11 +1,11 @@
 package tools
 
 import no.njoh.pulseengine.core.PulseEngine
-import no.njoh.pulseengine.core.graphics.Surface2D
+import no.njoh.pulseengine.core.graphics.surface.Surface
 import no.njoh.pulseengine.core.input.CursorType
-import no.njoh.pulseengine.core.input.Mouse
+import no.njoh.pulseengine.core.input.MouseButton
 import no.njoh.pulseengine.core.scene.SceneEntity
-import no.njoh.pulseengine.core.scene.SceneManager
+import no.njoh.pulseengine.core.scene.interfaces.Spatial
 import no.njoh.pulseengine.core.shared.primitives.Color
 import presentation.Animator
 import presentation.Animator.EasingFunction
@@ -29,9 +29,9 @@ fun Float.format(): String
 fun lerp(a: Float, b: Float, v: Float) = a * (1f - v) + b * v
 
 /**
- * Shorthand function to set the draw color of a [Surface2D] along with a given alpha value (transparency).
+ * Shorthand function to set the draw color of a [Surface] along with a given alpha value (transparency).
  */
-fun Surface2D.setDrawColor(color: Color, alpha: Float) =
+fun Surface.setDrawColor(color: Color, alpha: Float) =
     setDrawColor(color.red, color.green, color.blue, color.alpha * alpha)
 
 /**
@@ -39,21 +39,21 @@ fun Surface2D.setDrawColor(color: Color, alpha: Float) =
  */
 fun editEntityValue(engine: PulseEngine, entityId: Long): Float
 {
-    val e = engine.scene.getEntity(entityId) ?: return 0f
+    val e = engine.scene.getEntityOfType<Spatial>(entityId) ?: return 0f
     val xm = engine.input.xWorldMouse
     val ym = engine.input.yWorldMouse
     val radius = max(e.width, e.height) * 0.5f
     val isMouseInsideEntity = (xm - e.x) * (xm - e.x) + (ym - e.y) * (ym - e.y) < radius * radius
 
     if (isMouseInsideEntity)
-        engine.input.setCursor(CursorType.VERTICAL_RESIZE)
+        engine.input.setCursorType(CursorType.VERTICAL_RESIZE)
 
-    if (engine.input.isPressed(Mouse.LEFT))
+    if (engine.input.isPressed(MouseButton.LEFT))
     {
         if (isMouseInsideEntity && selectedEntity == null)
             selectedEntity = entityId
 
-        if (selectedEntity == e.id)
+        if (selectedEntity == (e as SceneEntity).id)
             return (engine.input.ydMouse / 2).toInt() * -0.01f
     }
     else selectedEntity = null
@@ -70,25 +70,6 @@ var selectedEntity: Long? = null
  */
 fun nextRandomGaussian() = random.nextGaussian().toFloat()
 private val random = Random() // java.util.Random provides .nextGaussian() function
-
-/**
- * Util function to loop through all scene entities implementing type [T].
- */
-inline fun <reified T> SceneManager.forEachEntityImplementing(action: (T) -> Unit)
-{
-    this.forEachEntityTypeList { list ->
-        // Each list contains entities of a single subclass of SceneEntity.
-        // So if the first entity is of type T, all entities in the list will be of type T.
-        if (list[0] is T)
-            list.forEachFast { action(it as T) }
-    }
-}
-
-/**
- * Util function to get the first [SceneEntity] of type [T] satisfying the given [predicate].
- */
-inline fun <reified T: SceneEntity> SceneManager.getFirstEntityOfType(predicate: (T) -> Boolean): T? =
-    getAllEntitiesOfType<T>()?.firstOrNull(predicate)
 
 /**
  * Global function for using the [Animator] system to animate properties.

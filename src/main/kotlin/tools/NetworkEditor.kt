@@ -4,11 +4,12 @@ import network.Connection
 import network.Node
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.input.Key
-import no.njoh.pulseengine.core.input.Mouse
+import no.njoh.pulseengine.core.input.MouseButton
 import no.njoh.pulseengine.core.scene.SceneEntity
 import no.njoh.pulseengine.core.scene.SceneEntity.Companion.SELECTED
 import no.njoh.pulseengine.core.scene.SceneState.STOPPED
 import no.njoh.pulseengine.core.scene.SceneSystem
+import no.njoh.pulseengine.core.scene.interfaces.Spatial
 import presentation.TextLabel
 import kotlin.math.abs
 import kotlin.math.max
@@ -52,10 +53,10 @@ class NetworkEditor : SceneSystem()
     /**
      * Snaps the position of the entity to the closet axis of nearby entities.
      */
-    private inline fun <reified T : SceneEntity> handlePositionSnapping(engine: PulseEngine)
+    private inline fun <reified T> handlePositionSnapping(engine: PulseEngine) where T : SceneEntity, T : Spatial
     {
         // Snapping is only active when left mouse and left shift is pressed
-        if (!(engine.input.isPressed(Mouse.LEFT) && engine.input.isPressed(Key.LEFT_SHIFT)))
+        if (!(engine.input.isPressed(MouseButton.LEFT) && engine.input.isPressed(Key.LEFT_SHIFT)))
             return
 
         val selectedEntity = engine.scene.getAllEntitiesOfType<T>()?.firstOrNull { it.isSet(SELECTED) } ?: return

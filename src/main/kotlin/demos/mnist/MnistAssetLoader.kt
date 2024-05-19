@@ -26,7 +26,6 @@ class MnistAssetLoader : SceneSystem()
     /** Whether to reduce the image sizes to half their original size or not. */
     var reduceToHalfSize = true
 
-    @JsonIgnore private var isLoading = false
     @JsonIgnore private var oldAssetName: String? = null
 
     override fun onStart(engine: PulseEngine)
@@ -44,15 +43,10 @@ class MnistAssetLoader : SceneSystem()
             maxImagesToLoad != existingDataset.maxImagesToLoad ||
             reduceToHalfSize != existingDataset.reduceToHalfSize
 
-        if (reloadDataset && !isLoading)
+        if (reloadDataset)
         {
             Logger.info("Starting to load MNIST asset: $assetName from files: $labelFileName and $imageFileName")
-            isLoading = true
-            Thread {
-                val asset = MnistAsset(assetName, labelFileName, imageFileName, maxImagesToLoad, reduceToHalfSize)
-                engine.asset.add(asset)
-                isLoading = false
-            }.start()
+            engine.asset.load(MnistAsset(assetName, labelFileName, imageFileName, maxImagesToLoad, reduceToHalfSize))
         }
     }
 }

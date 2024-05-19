@@ -2,8 +2,9 @@ package presentation
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.njoh.pulseengine.core.PulseEngine
-import no.njoh.pulseengine.core.graphics.Surface2D
+import no.njoh.pulseengine.core.graphics.surface.Surface
 import no.njoh.pulseengine.core.scene.SceneEntity
+import no.njoh.pulseengine.modules.scene.entities.StandardSceneEntity
 import tools.animate
 import tools.getEventValue
 import kotlin.math.max
@@ -11,7 +12,7 @@ import kotlin.math.max
 /**
  * Subclass of [SceneEntity] that provides functionality to change the entity visibility via event messages.
  */
-abstract class PresentationEntity : SceneEntity(), EventListener
+abstract class PresentationEntity : StandardSceneEntity(),  EventListener
 {
     /** The initial visibility value at the start of the scene in range (0.0 - 1.0). */
     var initialVisibility = 1f
@@ -24,7 +25,7 @@ abstract class PresentationEntity : SceneEntity(), EventListener
         visibility = initialVisibility
     }
 
-    override fun onRender(engine: PulseEngine, surface: Surface2D)
+    override fun onRender(engine: PulseEngine, surface: Surface)
     {
         if (visibility <= 0f || !isOnScreen(surface))
             return // Invisible, don't draw to screen
@@ -32,7 +33,9 @@ abstract class PresentationEntity : SceneEntity(), EventListener
         onDrawToScreen(engine, surface)
     }
 
-    private fun isOnScreen(surface: Surface2D): Boolean
+    override fun onFixedUpdate(engine: PulseEngine) { }
+
+    private fun isOnScreen(surface: Surface): Boolean
     {
         val topLeft = surface.camera.topLeftWorldPosition
         val bottomRight = surface.camera.bottomRightWorldPosition
@@ -58,7 +61,7 @@ abstract class PresentationEntity : SceneEntity(), EventListener
     /**
      * Called when the entity should be visible on screen.
      */
-    abstract fun onDrawToScreen(engine: PulseEngine, surface: Surface2D)
+    abstract fun onDrawToScreen(engine: PulseEngine, surface: Surface)
 
     /**
      * Called when this entity is sent an event message.

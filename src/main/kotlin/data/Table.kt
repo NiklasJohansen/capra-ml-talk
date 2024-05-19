@@ -3,9 +3,9 @@ package data
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Texture
-import no.njoh.pulseengine.core.graphics.Surface2D
+import no.njoh.pulseengine.core.graphics.surface.Surface
 import no.njoh.pulseengine.core.input.CursorType
-import no.njoh.pulseengine.core.input.Mouse
+import no.njoh.pulseengine.core.input.MouseButton
 import no.njoh.pulseengine.core.shared.primitives.Array2D
 import no.njoh.pulseengine.core.shared.primitives.Color
 import presentation.Graphable
@@ -66,8 +66,8 @@ class Table : PresentationEntity(), Dataset, Graphable
 
         if (xm > xStart && xm < xStart + width && ym > yStart && ym < yStart + dataRowsHeight)
         {
-            engine.input.setCursor(CursorType.HAND)
-            if (engine.input.wasClicked(Mouse.LEFT))
+            engine.input.setCursorType(CursorType.HAND)
+            if (engine.input.wasClicked(MouseButton.LEFT))
             {
                 val index = ((ym - yStart) / rowHeight).toInt()
                 selectedSampleIndex = if (index != selectedSampleIndex) index else -1
@@ -78,7 +78,7 @@ class Table : PresentationEntity(), Dataset, Graphable
     /**
      * Render the dataset as a table.
      */
-    override fun onDrawToScreen(engine: PulseEngine, surface: Surface2D)
+    override fun onDrawToScreen(engine: PulseEngine, surface: Surface)
     {
         val rowHeight = height / table.height
         val colWidth = width / table.width

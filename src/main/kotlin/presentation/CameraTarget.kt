@@ -2,21 +2,21 @@ package presentation
 
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Texture
-import no.njoh.pulseengine.core.graphics.Surface2D
-import no.njoh.pulseengine.core.scene.SceneEntity
+import no.njoh.pulseengine.core.graphics.surface.Surface
 import no.njoh.pulseengine.core.scene.SceneState
 import no.njoh.pulseengine.modules.scene.entities.Camera
+import no.njoh.pulseengine.modules.scene.entities.StandardSceneEntity
 import kotlin.math.min
 
 /**
  * Spatial target to move the camera at a certain slide index.
  */
-class CameraTarget : SceneEntity(), EventListener
+class CameraTarget : StandardSceneEntity(), EventListener
 {
     /** Defines the target zoom level for the camera when tracking this target. */
     var zoom = 1f
 
-    override fun onRender(engine: PulseEngine, surface: Surface2D)
+    override fun onRender(engine: PulseEngine, surface: Surface)
     {
         // Don't show markers when scene is running
         if (engine.scene.state == SceneState.RUNNING)

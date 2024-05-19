@@ -6,7 +6,7 @@ import network.*
 import network.Connection.Companion.NOT_SET
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.input.Key
-import no.njoh.pulseengine.core.input.Mouse
+import no.njoh.pulseengine.core.input.MouseButton
 import no.njoh.pulseengine.core.scene.SceneState
 import no.njoh.pulseengine.core.scene.SceneSystem
 import kotlin.math.sqrt
@@ -66,8 +66,8 @@ class NetworkGenerator : SceneSystem()
         when
         {
             engine.scene.state != SceneState.STOPPED -> return // Only use tools in editor, not while scene is running
-            engine.input.isPressed(Mouse.RIGHT) -> beginNodeConnection(engine)
-            engine.input.wasReleased(Mouse.RIGHT) -> finishNodeConnection(engine)
+            engine.input.isPressed(MouseButton.RIGHT) -> beginNodeConnection(engine)
+            engine.input.wasReleased(MouseButton.RIGHT) -> finishNodeConnection(engine)
             engine.input.wasClicked(Key.G) -> generateNetwork(
                 engine = engine,
                 xPos = engine.input.xWorldMouse,

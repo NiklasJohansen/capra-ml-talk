@@ -13,6 +13,7 @@ class PresentationMain : PulseEngineGame()
     {
         engine.window.title = "Capra - Fag og Øl (03.11.2022) - Hva er maskinlæring, sånn egentlig?"
         engine.widget.add(CommandLine(), Profiler(), SceneEditor())
+        engine.data.saveDirectory = "D:\\Users\\Niklas\\OneDrive\\Documents\\Projects\\neural-network-presentation\\src\\main\\resources"
 
         // Load initial assets
         engine.asset.loadAllTextures("/assets")
@@ -29,7 +30,7 @@ class PresentationMain : PulseEngineGame()
     override fun onUpdate()
     {
         // Set default cursor once every frame
-        engine.input.setCursor(CursorType.ARROW)
+        engine.input.setCursorType(CursorType.ARROW)
     }
 
     override fun onRender() { }

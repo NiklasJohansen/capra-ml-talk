@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import network.Node
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Font
-import no.njoh.pulseengine.core.graphics.Surface2D
+import no.njoh.pulseengine.core.graphics.surface.Surface
 import no.njoh.pulseengine.core.shared.primitives.Color
 import tools.mapToLongArray
 import tools.setDrawColor
@@ -36,7 +36,7 @@ class Classifier : PresentationEntity()
         labels = classLabels.split(",").toTypedArray()
     }
 
-    override fun onDrawToScreen(engine: PulseEngine, surface: Surface2D)
+    override fun onDrawToScreen(engine: PulseEngine, surface: Surface)
     {
         // Calculate total sum
         var sum = 0.0000001f

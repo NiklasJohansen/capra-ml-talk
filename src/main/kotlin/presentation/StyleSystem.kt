@@ -56,26 +56,28 @@ class StyleSystem : SceneSystem()
 
         if (vignetteUpdated)
         {
-            // Get or create effect
-            vignetteEffect = vignetteEffect ?:
-                VignetteEffect(vignette).also { engine.gfx.getSurface(BG_SURFACE_NAME)?.addPostProcessingEffect(it) }
-
-            vignetteEffect?.strength = vignette
-            vignetteUpdated = false
+            val effect = engine.gfx.getSurface(BG_SURFACE_NAME)?.getPostProcessingEffect(VIGNETTE_EFFECT_NAME) as? VignetteEffect?
+            if (effect != null)
+            {
+                effect.strength = vignette
+                vignetteUpdated = false
+            }
+            else
+            {
+                engine.gfx.getSurface(BG_SURFACE_NAME)?.addPostProcessingEffect(VignetteEffect(VIGNETTE_EFFECT_NAME))
+            }
         }
     }
 
     override fun onDestroy(engine: PulseEngine)
     {
-        vignetteEffect?.let {
-            it.cleanUp()
-            engine.gfx.getSurface(BG_SURFACE_NAME)?.removePostProcessingEffect(it)
-        }
+        engine.gfx.getSurface(BG_SURFACE_NAME)?.deletePostProcessingEffect(VIGNETTE_EFFECT_NAME)
         engine.gfx.deleteSurface(BG_SURFACE_NAME)
     }
 
     companion object
     {
         private const val BG_SURFACE_NAME = "background"
+        private const val VIGNETTE_EFFECT_NAME = "vignette"
     }
 }

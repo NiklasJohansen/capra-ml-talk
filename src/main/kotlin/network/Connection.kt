@@ -1,7 +1,7 @@
 package network
 
 import no.njoh.pulseengine.core.PulseEngine
-import no.njoh.pulseengine.core.graphics.Surface2D
+import no.njoh.pulseengine.core.graphics.surface.Surface
 import no.njoh.pulseengine.core.shared.primitives.Color
 import presentation.PresentationEntity
 import presentation.StyleSystem
@@ -57,7 +57,7 @@ class Connection : PresentationEntity()
         }
     }
 
-    override fun onDrawToScreen(engine: PulseEngine, surface: Surface2D)
+    override fun onDrawToScreen(engine: PulseEngine, surface: Surface)
     {
         val fromNode = engine.scene.getEntityOfType<Node>(fromNodeId)
         val toNode = engine.scene.getEntityOfType<Node>(toNodeId)
@@ -66,15 +66,18 @@ class Connection : PresentationEntity()
             drawConnection(engine, surface, fromNode, toNode)
     }
 
-    private fun drawConnection(engine: PulseEngine, surface: Surface2D, fromNode: Node, toNode: Node)
+    private fun drawConnection(engine: PulseEngine, surface: Surface, fromNode: Node, toNode: Node)
     {
         // Draw line
-        val halfLineWidth = getLineWidth(weight, lineThickness) * 0.5f
-        surface.setLineColor(engine, weight)
-        surface.drawQuadVertex(fromNode.x + fromNode.width * 0.45f, fromNode.y - halfLineWidth)
-        surface.drawQuadVertex(fromNode.x + fromNode.width * 0.45f, fromNode.y + halfLineWidth)
-        surface.drawQuadVertex(toNode.x - toNode.width * 0.45f, toNode.y + halfLineWidth)
-        surface.drawQuadVertex(toNode.x - toNode.width * 0.45f, toNode.y - halfLineWidth)
+        if (visibility * lineVisibility > 0f)
+        {
+            val halfLineWidth = getLineWidth(weight, lineThickness) * 0.5f
+            surface.setLineColor(engine, weight)
+            surface.drawQuadVertex(fromNode.x + fromNode.width * 0.45f, fromNode.y - halfLineWidth)
+            surface.drawQuadVertex(fromNode.x + fromNode.width * 0.45f, fromNode.y + halfLineWidth)
+            surface.drawQuadVertex(toNode.x - toNode.width * 0.45f, toNode.y + halfLineWidth)
+            surface.drawQuadVertex(toNode.x - toNode.width * 0.45f, toNode.y - halfLineWidth)
+        }
 
         // Draw weight value text if enabled
         if (showText)
@@ -92,7 +95,7 @@ class Connection : PresentationEntity()
         }
     }
 
-    private fun Surface2D.setLineColor(engine: PulseEngine, weight: Float)
+    private fun Surface.setLineColor(engine: PulseEngine, weight: Float)
     {
         val style = engine.scene.getSystemOfType<StyleSystem>()
         val negativeColor = style?.connectionNegativeColor ?: negativeColor

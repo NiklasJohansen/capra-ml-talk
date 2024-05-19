@@ -2,7 +2,7 @@ package presentation
 
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Texture
-import no.njoh.pulseengine.core.graphics.Surface2D
+import no.njoh.pulseengine.core.graphics.surface.Surface
 import no.njoh.pulseengine.core.shared.primitives.Color
 import no.njoh.pulseengine.core.shared.utils.Extensions.forEachFast
 import no.njoh.pulseengine.core.shared.utils.Extensions.toDegrees
@@ -59,7 +59,7 @@ class Graph : PresentationEntity()
     /**
      * Render the graph.
      */
-    override fun onDrawToScreen(engine: PulseEngine, surface: Surface2D)
+    override fun onDrawToScreen(engine: PulseEngine, surface: Surface)
     {
         // Draw background rectangle
         surface.setDrawColor(backgroundColor, visibility)
@@ -75,7 +75,7 @@ class Graph : PresentationEntity()
         drawPlotPoints(surface, engine)
     }
 
-    private fun drawGraphAxis(surface: Surface2D)
+    private fun drawGraphAxis(surface: Surface)
     {
         val xRange = xMaxValue - xMinValue
         val yRange = yMaxValue - yMinValue
@@ -131,7 +131,7 @@ class Graph : PresentationEntity()
         }
     }
 
-    private fun drawGraphLines(surface: Surface2D, engine: PulseEngine)
+    private fun drawGraphLines(surface: Surface, engine: PulseEngine)
     {
         val entity = engine.scene.getEntity(entityIdToGraph)
         if (entity !is Graphable || entity.graphValues.isEmpty())
@@ -168,7 +168,7 @@ class Graph : PresentationEntity()
                     y = yCenter,
                     width = lineThickness + length,
                     height = lineThickness,
-                    rot = angle,
+                    angle = angle,
                     xOrigin = 0.5f,
                     yOrigin = 0.5f,
                     cornerRadius = lineThickness / 2f
@@ -184,7 +184,7 @@ class Graph : PresentationEntity()
         if (yLast > yMaxValue) yMaxValue = yLast
     }
 
-    private fun drawPlotPoints(surface: Surface2D, engine: PulseEngine)
+    private fun drawPlotPoints(surface: Surface, engine: PulseEngine)
     {
         val entity = engine.scene.getEntity(entityIdToPlot)
         if (entity !is Plottable || entity.plotPoints.isEmpty())
@@ -210,7 +210,7 @@ class Graph : PresentationEntity()
                 y = y0,
                 width = plotPointSize,
                 height = plotPointSize,
-                rot = 0f,
+                angle = 0f,
                 xOrigin = 0.5f,
                 yOrigin = 0.5f,
                 cornerRadius = plotPointSize / 2f
